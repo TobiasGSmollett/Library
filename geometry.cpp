@@ -65,6 +65,17 @@ int ccw(Point a, Point b, Point c) {
   return 0;                              // a--c--b on line
 }
 
+/*
+  Unverified.
+  原点を始点とするベクトルa,b,c
+  cがa -> bに反時計回りで回る角の
+  内部,辺上,外部(1,0,-1)
+  のどこにあるか
+*/
+int visible(Point a, Point b, Point c){
+  return sgn(sgn(a.cross(c))-sgn(b.cross(c))-sgn(a.cross(b)));
+}
+
 struct Line{
   Point a,b;
 
@@ -136,7 +147,6 @@ struct Segment: public Line{
     Verified. AOJ CGL_2/B
   */
   bool isIntersection(Segment s){
-    if(isParallel(s))return overlap(s);
     return (ccw(a,b,s.a)*ccw(a,b,s.b)<=0 &&
 	    ccw(s.a,s.b,a)*ccw(s.a,s.b,b)<=0);
   }
