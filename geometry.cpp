@@ -40,7 +40,6 @@ struct Point{
   Real dist(Point a){return (*this-a).norm();}
   Real dot(Point a){return x*a.x+y*a.y;}
   Real cross(Point a){return x*a.y-y*a.x;}
-  //点pを中心に角度r(radius)だけ半時計回りに回転する
   Point rotate(Real r,Point p = Point(0,0)){
     Real ta=cos(r)*(x-p.x)-sin(r)*(y-p.y)+p.x;
     Real tb=sin(r)*(x-p.x)+cos(r)*(y-p.y)+p.y;
@@ -169,6 +168,10 @@ struct Circle{
   Circle(){}
   Circle(Point p, Real r) : p(p) , r(r){}
   
+  bool contain(Point a){
+    return sgn((a-p).dot(a-p),r)<0;
+  }
+  
   /*
     Verified. AOJ CGL_7/D 
     直線と円の交点。
@@ -201,6 +204,31 @@ struct Circle{
     res.push_back(Point(p.x+r*cos(C-a), p.y+r*sin(C-a)));
     return res;
   }
+
+  /*
+    Verified. POJ 2546 
+    ２円の共通部分の面積
+   */
+  Real intersectionArea(Circle c){
+    Real r1=min(r,c.r),r2=max(r,c.r);
+    Real d=(p-c.p).norm();
+    if(sgn(d,r2-r1)<=0)return PI*r1*r1;
+    if(sgn(d,r2+r1)>=0)return 0;
+    
+    Real rc=(d*d+r1*r1-r2*r2)/2/d;
+    Real theta=acos(rc/r1);
+    Real phi=acos((d-rc)/r2);
+    return r1*r1*theta+r2*r2*phi-d*r1*sin(theta);
+  }
+
+  /*
+    Unverified.
+    2円を囲む円
+  */
+  Circle circumCircle(Point a,Point b){
+    Point q=(a+b)/2;
+    Circle(q,(a-q).dot(a-q));
+  }
   
   /*
     Verified. AOJ 0010
@@ -213,7 +241,7 @@ struct Circle{
     res.p.x=a.y*c.y-b.y*c.x;
     res.p.y=b.x*c.x-a.x*c.y;
     res.p=res.p/a.cross(b);
-    return circle(res.p, p.dist(res.p));
+    return Circle(res.p, p.dist(res.p));
   }
   
   /*
@@ -240,6 +268,34 @@ struct Circle{
     Point b(a.y,-a.x);
     return Line(p+a,p+a+b);
   }
+
+  /*
+    Unverified.
+    最小包含円。amortized O(n)
+   */
+  Circle minEnclosingCircle(vector<Point>ps){
+    if(ps.size()==0)return Circle(Point(0,0),0);
+    if(ps.size()==1)return Circle(ps[0],0);
+    //random_suffle(ps.begin(),ps.end());
+    Circle circle=circumCircle(ps[0],ps[1]);
+    for(int i=2;i<ps.size();i++){
+      if(!circle.contain(ps[i])){
+	circle=circumCircle(ps[0],ps[i]);
+	for(int j=1;j<i;j++){
+	  if(!circle.contain(ps[j])){
+	    circle=circumCircle(ps[j],ps[i]);
+	    for(int k=0;k<j;k++){
+	      if(!circle.contain(ps[k])){
+		circle=circumscribedCircle(ps[i],ps[j],ps[k]);
+	      }
+	    }
+	  }
+	}
+      }
+    }
+    return circle;
+  }
+
 };
 
 struct Polygon{
