@@ -3,8 +3,8 @@ Verified. AOJ1163
 Hopcroft Karp
 O(E sqrt(V))
 */
-#include <algorithm>
-#include <iostream>
+#include<algorithm>
+#include<iostream>
 #include<vector>
 
 #define MAX_L 50000
@@ -27,7 +27,7 @@ void init(int _n1, int _n2){
 
 void add_edge(int u, int v){
   head[edges]=v;
-  preve[edges]=last[u];
+  preve[edges]=last[u]; 
   last[u]=edges++;
 }
 
@@ -35,20 +35,17 @@ bool used[MAX_L];
 
 void bfs(){
   fill(dist,dist+n1,-1);
-  int sizeQ=0;
-  for (int u=0;u<n1;u++){
-    if (!used[u]){
-      que[sizeQ++]=u;
-      dist[u]=0;
-    }
-  }
-  for (int i=0;i<sizeQ;i++){
+  int sz=0;
+  for(int u=0;u<n1;u++)
+    if(!used[u])que[sz++]=u,dist[u]=0;
+ 
+  for(int i=0;i<sz;i++){
     int u1=que[i];
-    for (int e=last[u1];e>=0;e=preve[e]){
+    for(int e=last[u1];e>=0;e=preve[e]){
       int u2=match[head[e]];
-      if (u2>=0 && dist[u2]<0){
+      if(u2>=0 && dist[u2]<0){
 	dist[u2]=dist[u1]+1;
-	que[sizeQ++]=u2;
+	que[sz++]=u2;
       }
     }
   }
@@ -56,11 +53,11 @@ void bfs(){
 
 bool vis[MAX_L];
 
-bool dfs(int u1) {
+bool dfs(int u1){
   vis[u1]=true;
-  for (int e=last[u1];e>=0;e=preve[e]){
+  for(int e=last[u1];e>=0;e=preve[e]){
     int v=head[e],u2=match[v];
-    if (u2<0 || (!vis[u2] && dist[u2]==dist[u1]+1 && dfs(u2))){
+    if(u2<0 || (!vis[u2] && dist[u2]==dist[u1]+1 && dfs(u2))){
       match[v]=u1;
       return used[u1]=true;
     }
@@ -72,13 +69,14 @@ int bipartite_matching(){
   fill(used,used+n1,false);
   fill(match,match+n2,-1);
   int flow=0;
-  for (;;){
+  for(;;){
     bfs();
     fill(vis,vis+n1,false);
     int f=0;
     for(int u=0;u<n1;u++)
       if(!used[u] && dfs(u))f++;
-    if (!f)return flow;
+    
+    if(!f)return flow;
     flow+=f;
   }
 }
