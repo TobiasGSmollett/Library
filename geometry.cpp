@@ -168,8 +168,11 @@ struct Circle{
   Circle(){}
   Circle(Point p, Real r) : p(p) , r(r){}
   
+  /*
+    Verified. SPOJ 6044
+   */
   bool contain(Point a){
-    return sgn((a-p).dot(a-p),r)<0;
+    return sgn((a-p).norm(),r)<=0;
   }
   
   /*
@@ -220,29 +223,6 @@ struct Circle{
     Real phi=acos((d-rc)/r2);
     return r1*r1*theta+r2*r2*phi-d*r1*sin(theta);
   }
-
-  /*
-    Unverified.
-    2円を囲む円
-  */
-  Circle circumCircle(Point a,Point b){
-    Point q=(a+b)/2;
-    Circle(q,(a-q).dot(a-q));
-  }
-  
-  /*
-    Verified. AOJ 0010
-    3点p,q,rを通る円を求める
-  */
-  Circle circumscribedCircle(Point p, Point q, Point r){
-    Point a=(q-p)*2,b=(r-p)*2;
-    Point c(p.dot(p)-q.dot(q),p.dot(p)-r.dot(r));
-    Circle res;
-    res.p.x=a.y*c.y-b.y*c.x;
-    res.p.y=b.x*c.x-a.x*c.y;
-    res.p=res.p/a.cross(b);
-    return Circle(res.p, p.dist(res.p));
-  }
   
   /*
     Verified. AOJ 2201
@@ -270,7 +250,30 @@ struct Circle{
   }
 
   /*
-    Unverified.
+    Verified. SPOJ 6044
+    2円を囲む円
+  */
+  Circle circumCircle(Point a,Point b){
+    Point q=(a+b)/2;
+    return Circle(q,(a-q).norm());
+  }
+  
+  /*
+    Verified. AOJ 0010
+    3点p,q,rを通る円を求める
+  */
+  Circle circumscribedCircle(Point p, Point q, Point r){
+    Point a=(q-p)*2,b=(r-p)*2;
+    Point c(p.dot(p)-q.dot(q),p.dot(p)-r.dot(r));
+    Circle res;
+    res.p.x=a.y*c.y-b.y*c.x;
+    res.p.y=b.x*c.x-a.x*c.y;
+    res.p=res.p/a.cross(b);
+    return Circle(res.p, p.dist(res.p));
+  }
+  
+  /*
+    Verified. SPOJ 6044
     最小包含円。amortized O(n)
    */
   Circle minEnclosingCircle(vector<Point>ps){
