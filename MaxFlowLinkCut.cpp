@@ -22,33 +22,20 @@ struct node_t{
   edge *e;
  
   node_t(int id,int v):id(id),val(v){
-    pp=lp=rp=NULL;
-    saved=lazy=0;
-    update();
+    pp=lp=rp=NULL; saved=lazy=0; update();
   }
    
   void update(){
-    mini=val;
-    minId=id;
-    if (lp && mini>lp->mini){
-      mini=lp->mini;
-      minId=lp->minId;
-    }
-    if (rp && mini>=rp->mini){
-      mini=rp->mini;
-      minId=rp->minId;
-    }
+    mini=val,minId=id;
+    if(lp && mini>lp->mini)mini=lp->mini,minId=lp->minId;
+    if(rp && mini>=rp->mini)mini=rp->mini,minId=rp->minId;
   }
    
-  void apply(int v) {
-    lazy+=v;
-    val+=v;
-    mini+=v;
-  }
+  void apply(int v){ lazy+=v, val+=v, mini+=v; }
    
-  void push() {
-    if (lp)lp->apply(lazy);
-    if (rp)rp->apply(lazy);
+  void push(){
+    if(lp)lp->apply(lazy);
+    if(rp)rp->apply(lazy);
     lazy=0;
   }
  
@@ -57,30 +44,25 @@ struct node_t{
   }
 };
  
-void connect(node_t *ch, node_t *p,bool lch) {
-  if(lch)p->lp=ch;
-  else p->rp=ch;
+void connect(node_t *ch, node_t *p,bool lch){
+  (lch?p->lp:p->rp)=ch;
   if(ch)ch->pp=p;
 }
  
 void rotate(node_t *x){
-  node_t *p=x->pp;
-  node_t *g=p->pp;
-  p->push();
-  x->push();
-  bool isRootP=p->is_root();
-  bool leftChildX=(x==p->lp);
-  connect(leftChildX?x->rp:x->lp,p,leftChildX);
-  connect(p,x,!leftChildX);
-  if (!isRootP)connect(x,g,p==g->lp);
+  node_t *p=x->pp,*g=p->pp;
+  p->push(),x->push();
+  bool isRootP=p->is_root(),isLch=(x==p->lp);
+  connect(isLch?x->rp:x->lp,p,isLch);
+  connect(p,x,!isLch);
+  if(!isRootP)connect(x,g,p==g->lp);
   else x->pp=g;
   p->update();
 }
  
-void splay(node_t *x) {
-  while(!x->is_root()) {
-    node_t *p=x->pp;
-    node_t *g=p->pp;
+void splay(node_t *x){
+  while(!x->is_root()){
+    node_t *p=x->pp,*g=p->pp;
     if(!p->is_root())rotate((x==p->lp)==(p==g->lp)?p:x);
     rotate(x);
   }
@@ -88,9 +70,9 @@ void splay(node_t *x) {
   x->update();
 }
  
-node_t *expose(node_t *x) {
+node_t *expose(node_t *x){
   node_t *last=NULL;
-  for (node_t *y=x;y!=NULL;y=y->pp) {
+  for(node_t *y=x;y;y=y->pp) {
     splay(y);
     y->lp=last;
     y->update();
@@ -121,22 +103,10 @@ void cut(node_t *x) {
   x->saved=x->val;
   x->val=INF;
 }
- 
-int min(node_t *x){
-  expose(x);
-  return x->mini;
-}
 
-int minId(node_t *x) {
-  expose(x);
-  return x->minId;
-}
- 
-void add(node_t *x,int lazy) {
-  expose(x);
-  x->apply(lazy);
-}
- 
+int minId(node_t *x){ expose(x); return x->minId; }
+void add(node_t *x,int lazy){ expose(x); x->apply(lazy); }
+
 vector<edge> g[max_n];
 int n;
  
@@ -150,24 +120,36 @@ int dist[max_n];
 bool bfs(int s,int t){
   fill(dist,dist+max_n,-1);
   dist[s]=0;
-  int que[max_n],tail=0;
-  que[tail++]=s;
-  for(int i=0;i<tail;i++){
-    int u=que[i];
+  queue<int>que;
+  que.push(s);
+  while(!que.empty()){
+    int u=que.front();que.pop();
+    if(u==t)return true;
     for(int j=0;j<g[u].size();j++){
       edge e=g[u][j];
       if(dist[e.to]<0 && e.cap>0){
 	dist[e.to]=dist[u]+1;
-	que[tail++]=e.to;
+	que.push(e.to);
       }
     }
   }
-  return dist[t]>=0;
+  return false;
 }
 
 int ptr[max_n];
 node_t *nodes[max_n];
 vector<int>lists[max_n];
+
+bool func(int id,int i){
+  int u=lists[id][i];
+  if(findRoot(nodes[u])==nodes[u])return true;
+  edge *e=nodes[u]->e;
+  expose(nodes[u]);
+  int df=e->cap-(nodes[u]->val<INF?nodes[u]->val:nodes[u]->saved);
+  e->cap-=df;
+  g[e->to][e->rev].cap+=df;
+  return false;
+}
  
 int max_flow(int S,int T){
   int flow=0;
@@ -181,62 +163,45 @@ int max_flow(int S,int T){
     
     while(true){
       node_t *v=findRoot(s);
+
       if(v==t){
-	v=nodes[minId(s)];
-	expose(v);
+	expose(v=nodes[minId(s)]);
 	flow+=v->mini;
-	add(s,-(v->mini));
+	add(s,-v->mini);
 	while(true){
-	  v=nodes[minId(s)];
-	  expose(v);
+	  expose(v=nodes[minId(s)]);
 	  if(v->val>0)break;
-	  edge *e=v->e;
-	  g[e->to][e->rev].cap+=e->cap;
-	  e->cap=0;
+	  g[v->e->to][v->e->rev].cap+=v->e->cap;
+	  v->e->cap=0;
 	  cut(v);
 	}
+	continue;
+      } 
+      
+      if(ptr[v->id] < g[v->id].size()){
+	edge &e=g[v->id][ptr[v->id]++];
+	if(dist[e.to]==dist[v->id]+1 && e.cap>0){
+	  link(v,nodes[e.to],e.cap,&e);
+	  lists[e.to].push_back(v->id);
+	} 
       } else {
-	if(ptr[v->id] < g[v->id].size()){
-	  edge &e=g[v->id][ptr[v->id]++];
-	  if(dist[e.to]==dist[v->id]+1 && e.cap>0){
-	    link(v,nodes[e.to],e.cap,&e);
-	    lists[e.to].push_back(v->id);
-	  } 
-	} else {
-	  if(v==s){
-	    for(int i=0;i<n;i++){
-	      for(int j=0;j<lists[i].size();j++){
-		int u=lists[i][j];
-		if(findRoot(nodes[u])==nodes[u])continue;
-		edge *e=nodes[u]->e;
-		expose(nodes[u]);
-		int df=e->cap-(nodes[u]->val<INF?nodes[u]->val:nodes[u]->saved);
-		e->cap-=df;
-		g[e->to][e->rev].cap+=df;
-	      }
-	      lists[i].clear();
-	    }
-	    break;
+	if(v==s){
+	  for(int i=0;i<n;i++){
+	    for(int j=0;j<lists[i].size();j++)func(i,j);
+	    lists[i].clear();
 	  }
-
-	  for(int i=0;i<lists[v->id].size();i++){
-	    int u=lists[v->id][i];
-	    if(findRoot(nodes[u])==nodes[u])continue;
-	    edge *e=nodes[u]->e;
-	    expose(nodes[u]);
-	    int df=e->cap-nodes[u]->val;
-	    e->cap-=df;
-	    g[e->to][e->rev].cap+=df;
-	    cut(nodes[u]);
-	  }
-	  lists[v->id].clear();
+	  break;
 	}
+	for(int i=0;i<lists[v->id].size();i++){
+	  if(!func(v->id,i))cut(nodes[lists[v->id][i]]);
+	}
+	lists[v->id].clear();
       }
     }
   }
   return flow;
 }
-/*
+
 // AOJ GRL_6_A
 int main(void){
   
@@ -252,4 +217,3 @@ int main(void){
  
   return 0;
 }
-*/
