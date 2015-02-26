@@ -140,7 +140,7 @@ int ptr[max_n];
 node_t *nodes[max_n];
 vector<int>lists[max_n];
 
-bool func(int id,int i){
+bool pour(int id,int i){
   int u=lists[id][i];
   if(findRoot(nodes[u])==nodes[u])return true;
   edge *e=nodes[u]->e;
@@ -187,13 +187,13 @@ int max_flow(int S,int T){
       } else {
 	if(v==s){
 	  for(int i=0;i<n;i++){
-	    for(int j=0;j<lists[i].size();j++)func(i,j);
+	    for(int j=0;j<lists[i].size();j++)pour(i,j);
 	    lists[i].clear();
 	  }
 	  break;
 	}
 	for(int i=0;i<lists[v->id].size();i++){
-	  if(!func(v->id,i))cut(nodes[lists[v->id][i]]);
+	  if(!pour(v->id,i))cut(nodes[lists[v->id][i]]);
 	}
 	lists[v->id].clear();
       }
