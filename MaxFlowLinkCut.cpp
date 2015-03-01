@@ -18,11 +18,11 @@ struct edge{int to,cap,rev;};
  
 struct node_t{
   node_t *pp, *lp, *rp;
-  int id,val,mini,minId,lazy,saved;
+  int id,val,mini,minId,lazy;
   edge *e;
  
   node_t(int id,int v):id(id),val(v){
-    pp=lp=rp=NULL; saved=lazy=0; update();
+    pp=lp=rp=NULL; lazy=0; update();
   }
    
   void update(){
@@ -100,7 +100,6 @@ void cut(node_t *x) {
   expose(x);
   x->rp->pp=NULL;
   x->rp=NULL;
-  x->saved=x->val;
   x->val=INF;
 }
 
@@ -145,7 +144,7 @@ bool pour(int id,int i){
   if(findRoot(nodes[u])==nodes[u])return true;
   edge *e=nodes[u]->e;
   expose(nodes[u]);
-  int df=e->cap-(nodes[u]->val<INF?nodes[u]->val:nodes[u]->saved);
+  int df=e->cap-nodes[u]->val;
   e->cap-=df;
   g[e->to][e->rev].cap+=df;
   return false;
