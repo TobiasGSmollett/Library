@@ -6,21 +6,20 @@
 #include<vector>
 #include<algorithm>
 #include<queue>
-#include<climits>
-#include<cassert>
- 
+
 #define INF (1<<29)
 #define max_n 10000
- 
+
 using namespace std;
- 
+
 struct edge{int to,cap,rev;};
- 
+
 struct node_t{
-  node_t *pp, *lp, *rp;
+
+  node_t *pp,*lp,*rp;
   int id,val,mini,minId,lazy;
   edge *e;
- 
+
   node_t(int id,int v):id(id),val(v){
     pp=lp=rp=NULL; lazy=0; update();
   }
@@ -42,72 +41,97 @@ struct node_t{
   bool is_root(){
     return !pp || (pp->lp != this && pp->rp != this);
   }
+  
+  void rotr(){
+    node_t *q=pp,*r=q->pp;
+    q->push(),push();
+    if((q->lp=rp))rp->pp=q;
+    rp=q;q->pp=this;
+    if((pp=r)){
+      if(r->lp==q)r->lp=this;
+      if(r->rp==q)r->rp=this;
+    }
+    q->update();
+  }
+
+  void rotl(){
+    node_t *q=pp,*r=q->pp;
+    q->push(),push();
+    if((q->rp=lp))lp->pp=q;
+    lp=q;q->pp=this;
+    if((pp=r)){
+      if(r->lp==q)r->lp=this;
+      if(r->rp==q)r->rp=this;
+    }
+    q->update();
+  }
+
+  void splay(){
+    while(!is_root()){
+      node_t *q=pp;
+      if(q->is_root()){
+	if(q->lp==this)rotr();
+	else rotl();
+      } else {
+	node_t *r=q->pp;
+	if(r->lp==q){
+	  if(q->lp==this){q->rotr();rotr();}
+	  else {rotl();rotr();}
+	} else {
+	  if(q->rp==this){q->rotl();rotl();}
+	  else {rotr();rotl();}
+	}
+      }
+    }
+    push();
+    update();
+  }
 };
- 
-void connect(node_t *ch, node_t *p,bool lch){
-  (lch?p->lp:p->rp)=ch;
-  if(ch)ch->pp=p;
-}
- 
-void rotate(node_t *x){
-  node_t *p=x->pp,*g=p->pp;
-  p->push(),x->push();
-  bool isRootP=p->is_root(),isLch=(x==p->lp);
-  connect(isLch?x->rp:x->lp,p,isLch);
-  connect(p,x,!isLch);
-  if(!isRootP)connect(x,g,p==g->lp);
-  else x->pp=g;
-  p->update();
-}
- 
-void splay(node_t *x){
-  while(!x->is_root()){
-    node_t *p=x->pp,*g=p->pp;
-    if(!p->is_root())rotate((x==p->lp)==(p==g->lp)?p:x);
-    rotate(x);
-  }
-  x->push();
-  x->update();
-}
- 
+
 node_t *expose(node_t *x){
-  node_t *last=NULL;
-  for(node_t *y=x;y;y=y->pp) {
-    splay(y);
-    y->lp=last;
-    y->update();
-    last=y;
+  node_t *rp=NULL;
+  for(node_t *p=x;p;p=p->pp){
+    p->splay();
+    p->rp=rp;
+    p->update();
+    rp=p;
   }
-  splay(x);
-  return last;
-}
- 
-node_t *findRoot(node_t *x) {
-  expose(x);
-  while(x->rp)x=x->rp;
+  x->splay();
   return x;
 }
- 
-void link(node_t *x,node_t *y,int newValue,edge *e) {
+
+node_t *find_root(node_t *x){
   expose(x);
-  x->pp=y;
-  x->val=newValue;
-  x->update();
-  x->e=e;
-}
- 
-void cut(node_t *x) {
-  expose(x);
-  x->rp->pp=NULL;
-  x->rp=NULL;
-  x->val=INF;
+  while(x->lp)x=x->lp;
+  return x;
 }
 
-int minId(node_t *x){ expose(x); return x->minId; }
-void add(node_t *x,int lazy){ expose(x); x->apply(lazy); }
+void cut(node_t *c){
+  expose(c);
+  node_t *p=c->lp;
+  c->lp=NULL;
+  p->pp=NULL;
+  c->val=INF;
+}
+
+void link(node_t *c,node_t *p){
+  expose(c);
+  expose(p);
+  c->pp=p;
+  p->rp=c;
+}
+
+void link(node_t *c,node_t *p,int val,edge *e){
+  link(c,p);
+  c->val=val;
+  c->update();
+  c->e=e;
+}
+
+int minId(node_t *x){expose(x); return x->minId;}
+void add(node_t *x,int val){ expose(x); x->apply(val); }
 
 vector<edge> g[max_n];
-int n;
  
 void add_edge(int from,int to,int cap){
   g[from].push_back((edge){to,cap,g[to].size()});
@@ -135,13 +159,13 @@ bool bfs(int s,int t){
   return false;
 }
 
-int ptr[max_n];
+int n,ptr[max_n];
 node_t *nodes[max_n];
 vector<int>lists[max_n];
 
 bool pour(int id,int i){
   int u=lists[id][i];
-  if(findRoot(nodes[u])==nodes[u])return true;
+  if(find_root(nodes[u])==nodes[u])return true;
   edge *e=nodes[u]->e;
   expose(nodes[u]);
   int df=e->cap-nodes[u]->val;
@@ -149,7 +173,7 @@ bool pour(int id,int i){
   g[e->to][e->rev].cap+=df;
   return false;
 }
- 
+
 int max_flow(int S,int T){
   int flow=0;
   while(bfs(S,T)){
@@ -161,7 +185,7 @@ int max_flow(int S,int T){
     for(int i=0;i<n;i++)lists[i].clear();
     
     while(true){
-      node_t *v=findRoot(s);
+      node_t *v=find_root(s);
 
       if(v==t){
 	expose(v=nodes[minId(s)]);
