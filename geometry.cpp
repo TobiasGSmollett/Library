@@ -393,3 +393,19 @@ struct Polygon{
 
 
 
+/*
+  Unverified.
+  Simpson Integration
+*/
+Real simpson(Real (*f)(Real),Real a,Real b){
+  return (f(a)+4*f((a+b)/2)+f(b))*(b-a)/6;
+}
+
+Real integrate(Real (*f)(Real),Real a,Real b){
+  Real m=(a+b)/2;
+  Real am=simpson(f,a,m);
+  Real mb=simpson(f,m,b);
+  Real ab=simpson(f,a,b);
+  if(sgn(am+mb-ab)==0)return ab;
+  return integrate(f,a,m)+integrate(f,m,b);
+}
