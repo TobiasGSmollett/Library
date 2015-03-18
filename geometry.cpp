@@ -391,8 +391,6 @@ struct Polygon{
   }
 };
 
-
-
 /*
   Unverified.
   Simpson Integration
