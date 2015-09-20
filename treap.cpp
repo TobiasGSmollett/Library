@@ -1,11 +1,5 @@
-#include<iostream>
-#include<vector>
-#include<algorithm>
-#include<climits>
-#include<string>
-#include<ctime>
-#include<cstdio>
-#include<cstdlib>
+#include<bits/stdc++.h>
+
 #define INF (1LL<<62)
 
 using namespace std;
@@ -17,16 +11,10 @@ Verified.
 POJ 3580
 AOJ 1580
 etc.
-
-POJ 3580にsubmitする際はupdate関数中の
-t->sum=sum(t->lch)+sum(t->rch)+val(t);
-を削除すること。
 */
 template<class T>
 struct Treap {
-
 public:
-
   struct node_t{
     T val,mini,sum,lazy;
     node_t *lch,*rch;
@@ -40,11 +28,9 @@ public:
     }
   };
 
-  node_t *root;
-  Treap():root(NULL){}
-  
 private:
-
+  node_t *root;
+  
   T val(node_t *t){return t->val+t->lazy;}
   int count(node_t *t){return !t?0:t->cnt;}
   T sum(node_t *t){return !t?0:t->sum+t->lazy*count(t);}
@@ -103,13 +89,30 @@ private:
       return make_pair(update(t),s.second);
     }
   }
-  
+
   node_t *insert(node_t *t,int k,T val,int pri){
     pair<node_t *,node_t *>s=split(t,k);
     t=merge(s.first, new node_t(val,pri));
     t=merge(t,s.second);
     return update(t);
   }
+  
+  //fast
+  /*
+  node_t *insert(node_t *t,int k,T val,int pri){
+    if(!t)return new node_t(val,pri);
+    int c = count(t->lch);
+    if(t->pri > pri){
+      if(k<c)t->lch=insert(t->lch,k,val,pri);
+      else if(k>c)t->rch=insert(t->rch,k-c-1,val,pri);
+      return update(t);
+    }
+    pair<node_t *,node_t *> s=split(t,k);
+    node_t *p=new node_t(val,pri);
+    p->lch=s.first,p->rch=s.second;
+    return update(p);
+  }
+  */
   
   node_t *erase(node_t *t,int k){
     pair<node_t *,node_t *>s1,s2;
@@ -126,20 +129,38 @@ private:
     return find(t->rch, k-c-1);
   }
 
+  //fast
+  /*
+  void update(node_t *t, int k, T val){
+    int c=count(t->lch);
+    if(k<c)update(t->lch,k,val);
+    else if(k==c)t->val=val;
+    else update(t->rch,k-c-1,val);
+  }
+  */
 public:
-
-  void insert(int k,T val){ root=insert(root,k,val,rand()); }
-  void erase(int k){ root=erase(root,k); }
-  node_t *find(int k){ return find(root,k); }
+  Treap():root(NULL){}
+  inline pair<node_t *,node_t *> split(int k){
+    pair<node_t *,node_t *> res = split(root,k);
+    root=res.first;
+    return res;
+  }
+  inline void merge(node_t *r){ root=merge(root,r); }
+  inline void insert(int k,T val){ root=insert(root,k,val,rand()); }
+  inline void erase(int k){ root=erase(root,k); }
+  inline node_t *find(int k){ return find(root,k); }
+  inline void update(int id,T val){ erase(id); insert(id,val); }
+  //fast
+  //inline void update(int id,char val){ update(root,id,val); }
   
-  void add(int id,T val){
+  inline void add(int id,T val){
     node_t *a=find(id);
     T tmp=val(a);
     erase(id);
     insert(id,tmp+val);
   }
 
-  void rangeAdd(int l,int r,T v){
+  inline void rangeAdd(int l,int r,T v){
     pair<node_t *,node_t *>s1,s2;
     s2=split(root,r);
     s1=split(s2.first,l);
@@ -148,14 +169,9 @@ public:
     root=merge(root,s2.second);
   }
 
-  void update(int id,T val){
-    erase(id);
-    insert(id,val);
-  }
-
   //range query [l,r), 0-origin
    
-  T rangeMinimumQuery(int l,int r){
+  inline T rangeMinimumQuery(int l,int r){
     pair<node_t *,node_t *>s1,s2;
     s2=split(root,r);
     s1=split(s2.first,l);
@@ -164,7 +180,7 @@ public:
     return res;
   }
   
-  T rangeSumQuery(int l,int r){
+  inline T rangeSumQuery(int l,int r){
     pair<node_t *,node_t *>s1,s2;
     s2=split(root,r);
     s1=split(s2.first,l);
@@ -177,7 +193,7 @@ public:
    reverse(1,4)
    {1,2,3,4,5} -> {1,4,3,2,5}
    */
-  void reverse(int l,int r){
+  inline void reverse(int l,int r){
     pair<node_t *,node_t *>s1,s2;
     s2=split(root,r);
     s1=split(s2.first,l);
@@ -191,7 +207,7 @@ public:
     revolve(1,4,2)
     {1,2,3,4,5} -> {1,3,4,2,5}  
    */
-  void revolve(int l,int r,int t){
+  inline void revolve(int l,int r,int t){
     t%=(r-l);
     pair<node_t*, node_t*>a,b,c;
     c=split(root, r);
