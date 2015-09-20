@@ -37,9 +37,8 @@ private:
   T mini(node_t *t){return !t?INF:t->mini+t->lazy;}
   
   node_t *update(node_t *t){
-
     if(!t)return t;
-
+    
     t->cnt=count(t->lch)+count(t->rch)+1;
     t->sum=sum(t->lch)+sum(t->rch)+val(t);
     t->mini=min(min(mini(t->lch),mini(t->rch)),val(t));
@@ -50,19 +49,17 @@ private:
       if(t->rch)t->rch->lazy+=t->lazy;
       t->lazy=0;
     }
-    
     if(t->rev){
       swap(t->lch,t->rch);
       if(t->lch)t->lch->rev^=true;
       if(t->rch)t->rch->rev^=true;
       t->rev=false;
     }
-    
     return t;
   }
   
   node_t *merge(node_t *l, node_t *r){
-
+    
     l=update(l), r=update(r);
     if(!l || !r)return l?l:r;
     
@@ -103,7 +100,7 @@ private:
     if(!t)return new node_t(val,pri);
     int c = count(t->lch);
     if(t->pri > pri){
-      if(k<c)t->lch=insert(t->lch,k,val,pri);
+      if(k<=c)t->lch=insert(t->lch,k,val,pri);
       else if(k>c)t->rch=insert(t->rch,k-c-1,val,pri);
       return update(t);
     }
@@ -121,6 +118,22 @@ private:
     delete s1.second;
     return update((t=merge(s1.first,s2.second)));
   }
+
+  //fast
+  /*
+  node_t *erase(node_t *t,int k){
+    if(!t)return t;
+    int c=count(t->lch);
+    if(k==c){
+      node_t *p=merge(t->lch,t->rch);
+      delete t;
+      return update(p);
+    }
+    if(k<c)t->lch=erase(t->lch,k);
+    if(k>c)t->rch=erase(t->rch,k-c-1);
+    return update(t);
+  }
+  */
   
   node_t *find(node_t *t, int k){
     int c=count(t->lch);
