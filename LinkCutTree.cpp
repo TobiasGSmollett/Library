@@ -1,7 +1,4 @@
-#include<iostream>
-#include<vector>
-#include<algorithm>
-#include<queue>
+#include<bits/stdc++.h>
 
 #define INF (1<<29)
 #define max_n 10000
@@ -9,7 +6,6 @@
 using namespace std;
 
 struct node_t{
-
   node_t *pp,*lp,*rp;
   int id,val,mini,minId,lazy;
   bool rev;
@@ -21,15 +17,15 @@ struct node_t{
     update();
   }
    
-  inline void update(){
+  void update(){
     mini=val,minId=id;
     if(lp && mini>lp->mini)mini=lp->mini,minId=lp->minId;
     if(rp && mini>=rp->mini)mini=rp->mini,minId=rp->minId;
   }
    
-  inline void apply(int v){ lazy+=v, val+=v, mini+=v; }
+  void apply(int v){ lazy+=v, val+=v, mini+=v; }
    
-  inline void push(){
+  void push(){
     if(rev){
       rev=false;
       swap(lp,rp);

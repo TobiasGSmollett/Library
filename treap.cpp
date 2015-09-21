@@ -59,7 +59,6 @@ private:
   }
   
   node_t *merge(node_t *l, node_t *r){
-    
     l=update(l), r=update(r);
     if(!l || !r)return l?l:r;
     
@@ -116,7 +115,7 @@ private:
     s2=split(t,k+1);
     s1=split(s2.first,k);
     delete s1.second;
-    return update((t=merge(s1.first,s2.second)));
+    return merge(s1.first,s2.second);
   }
 
   //fast
@@ -127,7 +126,7 @@ private:
     if(k==c){
       node_t *p=merge(t->lch,t->rch);
       delete t;
-      return update(p);
+      return p;
     }
     if(k<c)t->lch=erase(t->lch,k);
     if(k>c)t->rch=erase(t->rch,k-c-1);
