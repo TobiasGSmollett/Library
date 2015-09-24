@@ -105,6 +105,18 @@ node_t *find_root(node_t *x){
   return x;
 }
 
+bool isConnected(node_t *x, node_t *y){
+  if(x==y)return true;
+  expose(x),expose(y);
+  return (x->pp != NULL);
+}
+
+//Unverified.
+void evert(node_t *p){
+  expose(p);
+  p->rev^=true;
+}
+
 void cut(node_t *c){
   expose(c);
   node_t *p=c->lp;
@@ -114,27 +126,34 @@ void cut(node_t *c){
 }
 
 void link(node_t *c,node_t *p){
-  expose(c);
-  expose(p);
+  if(isConnected(c,p))return;
+  evert(c);
   c->pp=p;
-  p->rp=c;
-  c->update();
 }
 
-//Unverified.
-void evert(node_t *p){
-  expose(p);
-  p->rev^=true;
-}
 
 //Verified.
 int minId(node_t *x){expose(x); return x->minId;}
 void add(node_t *x,int val){ expose(x); x->apply(val); }
 
 //Verified. AOJ GRL_5_C
-node_t *LCA(node_t *x,node_t* y){
+node_t *lca(node_t *x,node_t* y){
   expose(x);
   return expose(y);
+}
+
+//Unverified.
+int min(node_t *from, node_t *to){
+  evert(from);
+  expose(to);
+  return to->mini;
+}
+
+//Unverified.
+void add(node_t *from, node_t *to,int v){
+  evert(from);
+  expose(to);
+  to->lazy+=v;
 }
 
 /*
@@ -160,7 +179,7 @@ int main(void){
   for(int i=0;i<q;i++){
     int u,v;
     cin >> u >> v;
-    cout << LCA(node[u],node[v])->id << endl;
+    cout << lca(node[u],node[v])->id << endl;
   }
   
   return 0;
