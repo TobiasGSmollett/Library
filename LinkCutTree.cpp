@@ -10,7 +10,7 @@ struct node_t{
   int id,val,mini,minId,lazy;
   bool rev;
 
-  node_t(int id,int v):id(id),val(v){
+  node_t(int id,int v):id(id),val(v),mini(v){
     pp=lp=rp=NULL;
     rev=false; 
     lazy=0; 
@@ -19,11 +19,12 @@ struct node_t{
    
   void update(){
     mini=val,minId=id;
+    push();
+    if(lp)lp->push();
+    if(rp)rp->push();
     if(lp && mini>lp->mini)mini=lp->mini,minId=lp->minId;
-    if(rp && mini>=rp->mini)mini=rp->mini,minId=rp->minId;
+    if(rp && mini>rp->mini)mini=rp->mini,minId=rp->minId;
   }
-   
-  void apply(int v){ lazy+=v, val+=v, mini+=v; }
    
   void push(){
     if(rev){
@@ -32,9 +33,10 @@ struct node_t{
       if(lp)lp->rev^=true;
       if(rp)rp->rev^=true;
     }
-    if(lp)lp->apply(lazy);
-    if(rp)rp->apply(lazy);
-    lazy=0;
+    if(lp)lp->lazy+=lazy;
+    if(rp)rp->lazy+=lazy;
+
+    val+=lazy,mini+=lazy,lazy=0;
   }
  
   bool is_root(){
@@ -43,7 +45,7 @@ struct node_t{
   
   void rotr(){
     node_t *q=pp,*r=q->pp;
-    q->push(),push();
+    //q->push(),push();
     if((q->lp=rp))rp->pp=q;
     rp=q;q->pp=this;
     if((pp=r)){
@@ -55,7 +57,7 @@ struct node_t{
 
   void rotl(){
     node_t *q=pp,*r=q->pp;
-    q->push(),push();
+    //q->push(),push();
     if((q->rp=lp))lp->pp=q;
     lp=q;q->pp=this;
     if((pp=r)){
@@ -68,11 +70,14 @@ struct node_t{
   void splay(){
     while(!is_root()){
       node_t *q=pp;
+      node_t *r=q->pp;
+      if(!q->is_root())r->push();
+      q->push();
+      push();
       if(q->is_root()){
 	if(q->lp==this)rotr();
 	else rotl();
       } else {
-	node_t *r=q->pp;
 	if(r->lp==q){
 	  if(q->lp==this){q->rotr();rotr();}
 	  else {rotl();rotr();}
@@ -92,7 +97,7 @@ node_t *expose(node_t *x){
   for(node_t *p=x;p;p=p->pp){
     p->splay();
     p->rp=rp;
-    p->update();
+    //p->update();
     rp=p;
   }
   x->splay();
@@ -106,8 +111,10 @@ node_t *find_root(node_t *x){
 }
 
 bool isConnected(node_t *x, node_t *y){
-  if(x==y)return true;
-  expose(x),expose(y);
+  if(x->id==y->id)return true;
+  expose(x);
+  //assert(x->pp==NULL);
+  expose(y);
   return (x->pp != NULL);
 }
 
@@ -122,7 +129,8 @@ void cut(node_t *c){
   node_t *p=c->lp;
   c->lp=NULL;
   p->pp=NULL;
-  c->val=INF;
+  //c->val=INF;
+  //c->update();
 }
 
 void link(node_t *c,node_t *p){
@@ -131,17 +139,18 @@ void link(node_t *c,node_t *p){
   c->pp=p;
 }
 
-
 //Verified.
-int minId(node_t *x){expose(x); return x->minId;}
-void add(node_t *x,int val){ expose(x); x->apply(val); }
+//int minId(node_t *x){expose(x); return x->minId;}
+//void add(node_t *x,int val){ expose(x); x->apply(val); }
+//void add(node_t *x,int val){ expose(x); x->lazy=val; }
 
 //Verified. AOJ GRL_5_C
+/*
 node_t *lca(node_t *x,node_t* y){
   expose(x);
   return expose(y);
 }
-
+*/
 //Unverified.
 int min(node_t *from, node_t *to){
   evert(from);
@@ -185,3 +194,77 @@ int main(void){
   return 0;
 }
 */
+
+bool tree[51][51];
+
+bool getPath(int u,int v,int p,vector<int> &path,int n){
+  path.push_back(u);
+  if(u==v)return true;
+  for(int i=0;i<n;i++)
+    if(i!=p && tree[u][i] && getPath(i,v,u,path,n))return true;
+  path.pop_back();
+  return false;
+}
+
+void test(){  
+  srand(time(NULL));
+
+  for(int tc=0;tc<1000;tc++){
+    int n=abs(rand())%50+1,val[n];
+
+    node_t *node[n];
+    for(int i=0;i<n;i++)node[i] = new node_t(i,0);
+    cout << "came" << endl;
+    fill(tree[0],tree[50],0);
+    fill(val,val+n,0);
+    
+    for(int q=0;q<1000;q++){
+      int com=abs(rand())%10;
+      int u=abs(rand())%n,v=abs(rand())%n;
+      node_t *x=node[u],*y=node[v];
+
+      cout << com << " " << u << " " << v << endl;
+      
+      if(com==0){
+	evert(x);
+	expose(y);
+	if (y->lp == x && x->lp == NULL && x->rp == NULL) {
+	  cut(y);
+	  tree[u][v] = tree[v][u] = false;
+	}
+      }
+      else if(com==1){
+	if(isConnected(x,y)){
+	  vector<int>path;
+	  getPath(u,v,-1,path,n);
+	  int mini = INF;
+	  for(int i=0;i<path.size();i++)mini=min(mini,val[path[i]]);
+	  if(min(x,y)!=mini){
+	    cout << "assert bitween " << u << " " << v  << " min(x,y) " << min(x,y) << " mini " << mini << " path.size() "<<path.size()<< endl;
+	    assert(false);
+	  }
+	}
+      }
+      else if(com==2){
+	if(isConnected(x,y)){
+	  vector<int>path;
+	  getPath(u,v,-1,path,n);
+	  int lazy = abs(rand())%100+1;
+	  for(int i=0;i<path.size();i++)val[path[i]]+=lazy;
+	  add(x,y,lazy);
+	}
+      }
+      else {
+	if(!isConnected(x,y)){
+	  cout <<"connect "<< x->id << " " << y->id << endl;
+	  link(x,y);
+	  tree[u][v]=tree[v][u]=true;
+	}
+      }
+    }
+  }
+}
+
+int main(void){
+  test();
+}
