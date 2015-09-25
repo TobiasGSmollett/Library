@@ -45,7 +45,6 @@ struct node_t{
   
   void rotr(){
     node_t *q=pp,*r=q->pp;
-    //q->push(),push();
     if((q->lp=rp))rp->pp=q;
     rp=q;q->pp=this;
     if((pp=r)){
@@ -57,7 +56,6 @@ struct node_t{
 
   void rotl(){
     node_t *q=pp,*r=q->pp;
-    //q->push(),push();
     if((q->rp=lp))lp->pp=q;
     lp=q;q->pp=this;
     if((pp=r)){
@@ -97,7 +95,6 @@ node_t *expose(node_t *x){
   for(node_t *p=x;p;p=p->pp){
     p->splay();
     p->rp=rp;
-    //p->update();
     rp=p;
   }
   x->splay();
@@ -118,7 +115,7 @@ bool isConnected(node_t *x, node_t *y){
   return (x->pp != NULL);
 }
 
-//Unverified.
+//Verified.
 void evert(node_t *p){
   expose(p);
   p->rev^=true;
@@ -129,8 +126,6 @@ void cut(node_t *c){
   node_t *p=c->lp;
   c->lp=NULL;
   p->pp=NULL;
-  //c->val=INF;
-  //c->update();
 }
 
 void link(node_t *c,node_t *p){
@@ -140,25 +135,23 @@ void link(node_t *c,node_t *p){
 }
 
 //Verified.
-//int minId(node_t *x){expose(x); return x->minId;}
-//void add(node_t *x,int val){ expose(x); x->apply(val); }
-//void add(node_t *x,int val){ expose(x); x->lazy=val; }
+int minId(node_t *x){expose(x); return x->minId;}
+void add(node_t *x,int val){ expose(x); x->lazy=val; }
 
 //Verified. AOJ GRL_5_C
-/*
 node_t *lca(node_t *x,node_t* y){
   expose(x);
   return expose(y);
 }
-*/
-//Unverified.
+
+//Verified.
 int min(node_t *from, node_t *to){
   evert(from);
   expose(to);
   return to->mini;
 }
 
-//Unverified.
+//Verified.
 void add(node_t *from, node_t *to,int v){
   evert(from);
   expose(to);
@@ -214,7 +207,7 @@ void test(){
 
     node_t *node[n];
     for(int i=0;i<n;i++)node[i] = new node_t(i,0);
-    cout << "came" << endl;
+
     fill(tree[0],tree[50],0);
     fill(val,val+n,0);
     
@@ -223,7 +216,7 @@ void test(){
       int u=abs(rand())%n,v=abs(rand())%n;
       node_t *x=node[u],*y=node[v];
 
-      cout << com << " " << u << " " << v << endl;
+      //cout << com << " " << u << " " << v << endl;
       
       if(com==0){
 	evert(x);
@@ -240,7 +233,7 @@ void test(){
 	  int mini = INF;
 	  for(int i=0;i<path.size();i++)mini=min(mini,val[path[i]]);
 	  if(min(x,y)!=mini){
-	    cout << "assert bitween " << u << " " << v  << " min(x,y) " << min(x,y) << " mini " << mini << " path.size() "<<path.size()<< endl;
+	    //cout << "assert bitween " << u << " " << v  << " min(x,y) " << min(x,y) << " mini " << mini << " path.size() "<<path.size()<< endl;
 	    assert(false);
 	  }
 	}
@@ -256,7 +249,7 @@ void test(){
       }
       else {
 	if(!isConnected(x,y)){
-	  cout <<"connect "<< x->id << " " << y->id << endl;
+	  //cout <<"connect "<< x->id << " " << y->id << endl;
 	  link(x,y);
 	  tree[u][v]=tree[v][u]=true;
 	}
