@@ -4,9 +4,12 @@
 #define FOR(i, a, b) for (int i=int(a);i<int(b);++i)
 #define DWN(i, b, a) for (int i=int(b-1);i>=int(a);--i)
 #define DO(n) int n____ = n; while(n____--)
+#define EACH(i,c) for(__typeof((c).begin())i=(c).begin();i!=(c).end();++i)
+#define TRV(A) __typeof(A[0])e=A[0]; for(int i=0;i!=int(A.size());e=A[++i])
 #define TO(i, a, b) int s_=a<b?1:-1,b_=b+s_;for(int i=a;i!=b_;i+=s_)
 #define SQZ(i, j, a, b) for (int i=int(a),j=int(b)-1;i<j;++i,--j)
 #define REP2(i, j, n, m) REP(i, n) REP(j, m)
+
 
 #define ALL(A) A.begin(), A.end()
 #define LLA(A) A.rbegin(), A.rend()
@@ -65,6 +68,9 @@ template<class T> inline T high_bit(T x) {
 }
 
 using namespace std;
+
+typedef long long ll;
+typedef pair<int,int>pii;
 
 int main(void){
   ios::sync_with_stdio(false);
