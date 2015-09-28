@@ -86,7 +86,7 @@ vector<int> lcpArray(const vector<int> &sa, RollingHash &rh){
 //POJ 2217 TLE
 int main(void){
   ios::sync_with_stdio(false);
-  /*
+
   int n;
   string s,t;
   cin >> n;
@@ -104,11 +104,6 @@ int main(void){
     
     cout << "Nejdelsi spolecny retezec ma delku " << ans << ".\n";
   }
-  */
-  string s;
-  while(cin >> s){
-    RollingHash rh = RollingHash(s);
-    cout << longestPalindrome(rh) << "\n";
-  }
+
   return 0;
 }
