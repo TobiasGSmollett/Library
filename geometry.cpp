@@ -8,6 +8,7 @@
 #define next(P, i) P[(i+1) % P.size()]
 #define prev(P, i) P[(i+P.size()-1) % P.size()]
 
+#define ALL(A) A.begin(), A.end()
 
 using namespace std;
 
@@ -16,8 +17,8 @@ typedef double Real;
 Real EPS = 1e-8;
 const Real PI = acos(-1);
 
-int sgn(Real a, Real b=0){return a<b-EPS?-1:a>b+EPS?1:0;}
-Real sqr(Real a){return sqrt(max(a,(Real)0));}
+inline int sgn(Real a, Real b=0){return a<b-EPS?-1:a>b+EPS?1:0;}
+inline Real sqr(Real a){return sqrt(max(a,(Real)0));}
 
 struct Point{  
   Real add(Real a, Real b){
@@ -36,16 +37,16 @@ struct Point{
   bool operator == (Point p){return !sgn(dist(p));}
   //昇順
   bool operator < (Point p)const{return (p.x!=x)?x<p.x:y<p.y;}
-  Real norm(){return sqr(x*x+y*y);}
-  Real dist(Point a){return (*this-a).norm();}
-  Real dot(Point a){return x*a.x+y*a.y;}
-  Real cross(Point a){return x*a.y-y*a.x;}
+  inline Real norm(){return sqr(x*x+y*y);}
+  inline Real dist(Point a){return (*this-a).norm();}
+  inline Real dot(Point a){return x*a.x+y*a.y;}
+  inline Real cross(Point a){return x*a.y-y*a.x;}
   Point rotate(Real r,Point p = Point(0,0)){
     Real ta=cos(r)*(x-p.x)-sin(r)*(y-p.y)+p.x;
     Real tb=sin(r)*(x-p.x)+cos(r)*(y-p.y)+p.y;
     return Point(ta,tb);
   }
-  Real arg(){
+  inline Real arg(){
     if(sgn(x)>0)return atan(y/x);
     if(sgn(x)<0)return atan(y/x)+PI;
     if(sgn(y)>0)return PI/2;
@@ -55,7 +56,7 @@ struct Point{
 };
 
 //a -> b -> c
-int ccw(Point a, Point b, Point c) {
+inline int ccw(Point a, Point b, Point c) {
   b = b-a; c = c-a;
   if (b.cross(c) > 0)   return +1;       // counter clockwise
   if (b.cross(c) < 0)   return -1;       // clockwise
@@ -71,7 +72,7 @@ int ccw(Point a, Point b, Point c) {
   内部,辺上,外部(1,0,-1)
   のどこにあるか
 */
-int visible(Point a, Point b, Point c){
+inline int visible(Point a, Point b, Point c){
   return sgn(sgn(a.cross(c))-sgn(b.cross(c))-sgn(a.cross(b)));
 }
 
@@ -361,8 +362,9 @@ struct Polygon{
     for(int i=0;i<v.size();i++){
       Point a=curr(v,i),b=next(v,i),p=l.b-l.a;
       if(ccw(l.a,l.b,a)!=-1)res.push_back(a);
-      if(sgn(p.cross(a-l.a)*p.cross(b-l.a))<0)
-	res.push_back(Segment(a,b).intersectionPoint(l));
+      //if(sgn(p.cross(a-l.a)*p.cross(b-l.a))<0)
+      if(Segment(a,b).isIntersection(l))
+	res.push_back(Segment(a,b).intersectionPoint(Segment(l.a,l.b)));
     }
     return res;
   }
@@ -373,7 +375,7 @@ struct Polygon{
    */
   vector<Point>convexHull(){
     vector<Point>v1=v;
-    sort(all(v1));
+    sort(ALL(v1));
     int k=0;
     vector<Point> qs(v1.size()*2);
     
