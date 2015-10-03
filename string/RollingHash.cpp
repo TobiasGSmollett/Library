@@ -70,8 +70,8 @@ struct RollingHash{
 };
 
 vector<int> suffixArray(const RollingHash &rh){
-  vector<int> sa(rh.n);
-  REP(i,rh.n)sa[i]=i;
+  vector<int> sa(rh.n+1);
+  REP(i,rh.n+1)sa[i]=i;
   sort(ALL(sa),rh);
   return sa;
 }
