@@ -13,13 +13,13 @@ struct AhoCorasick {
   
   struct Node {
     int parent, link;
-    int children[ALPHABET_SIZE], next[ALPHABET_SIZE];
-    char charFromParent;
+    int child[ALPHABET_SIZE], next[ALPHABET_SIZE];
+    char ch; //from parent
     bool leaf;
     
     Node(){
       link=-1;
-      fill(children,children+ALPHABET_SIZE,-1);
+      fill(child,child+ALPHABET_SIZE,-1);
       fill(next,next+ALPHABET_SIZE,-1);
     }
   };
@@ -36,12 +36,12 @@ struct AhoCorasick {
     for(int i=0;i<sl;i++){
       char ch = s[i];
       int c = ch - 'a';
-      if(!~nodes[cur].children[c]){
+      if(!~nodes[cur].child[c]){
 	nodes[N].parent = cur;
-	nodes[N].charFromParent = ch;
-	nodes[cur].children[c] = N++;
+	nodes[N].ch = ch;
+	nodes[cur].child[c] = N++;
       }
-      cur = nodes[cur].children[c];
+      cur = nodes[cur].child[c];
     }
     nodes[cur].leaf = true;
   }
@@ -50,7 +50,7 @@ struct AhoCorasick {
     Node node = nodes[id];
     if(node.link == -1){
       if(!node.parent)node.link=root;
-      else node.link=trans(link(node.parent),node.charFromParent);
+      else node.link=trans(link(node.parent),node.ch);
     }
     return node.link;
   }
@@ -59,7 +59,7 @@ struct AhoCorasick {
     int c = ch - 'a';
     Node node = nodes[id];
     if(!~node.next[c]){
-      if(~node.children[c])node.next[c]=node.children[c];
+      if(~node.child[c])node.next[c]=node.child[c];
       else if(!id)node.next[c]=root;
       else node.next[c]=trans(link(id),ch);
     }

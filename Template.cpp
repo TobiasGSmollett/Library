@@ -9,7 +9,6 @@
 #define SQZ(i, j, a, b) for (int i=int(a),j=int(b)-1;i<j;++i,--j)
 #define REP2(i, j, n, m) REP(i, n) REP(j, m)
 
-
 #define ALL(A) A.begin(), A.end()
 #define LLA(A) A.rbegin(), A.rend()
 #define CPY(A, B) memcpy(A, B, sizeof(A))
@@ -25,10 +24,6 @@
 #pragma GCC optimize ("O2")
 
 
-/** Add - On **/
-
-// <<= ` 0. Daily Use .,
-
 template<class T> inline void checkMin(T &a,const T b){if (b<a) a=b;}
 template<class T> inline void checkMax(T &a,const T b){if (b>a) a=b;}
 template <class T, class C> inline void checkMin(T& a, const T b, C c){if (c(b,a)) a = b;}
@@ -38,9 +33,6 @@ template<class T> inline T max(T a, T b, T c){return max(max(a, b), c);}
 template<class T> inline T sqr(T a){return a*a;}
 template<class T> inline T cub(T a){return a*a*a;}
 int Ceil(int x, int y){return (x - 1) / y + 1;}
-
-
-// <<= ` 1. Bitwise Operation .,
 
 inline bool _1(int x, int i){return x & 1<<i;}
 inline int _1(int i){return 1<<i;}
