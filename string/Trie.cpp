@@ -51,14 +51,6 @@ public:
 };
 
 int main(void){
-
-  Trie t;
-  t.insert("hello");
-  t.insert("world");
-  t.insert("hi");
-  t.print();
-  t.clear();
-  t.print();
-
+  
   return 0;
 }

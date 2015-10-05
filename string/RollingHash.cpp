@@ -2,21 +2,15 @@
   RollingHash
   See : https://topcoder.g.hatena.ne.jp/spaghetti_source/20130209/1360403866
 */
-
-//#include <bits/stdc++.h>
 #include<string>
 #include<vector>
 #include<algorithm>
 #include<iostream>
 
 #define REP(i, n) for (int i=0;i<int(n);++i)
-#define FOR(i, a, b) for (int i=int(a);i<int(b);++i)
 #define ALL(A) (A).begin(),(A).end()
 #define SZ(A) int(A.size())
 #define PB push_back
-
-#pragma comment(linker, "/STACK:36777216")
-#pragma GCC optimize ("O2")
 
 using namespace std;
 
@@ -26,14 +20,11 @@ struct RollingHash{
   static const ull p=100000007;
   string s;
   int n;
-  vector<ull> pow, phash;
+  vector<ull> pow, ph;
   
-  RollingHash(string s) : s(s), n(SZ(s)), pow(n+1), phash(n+1){
-    pow[0]=1,phash[0]=0;
-    REP(i, n) {
-      phash[i+1] = s[i] + phash[i] * p;
-      pow[i+1] = pow[i] * p;
-    }
+  RollingHash(string s) : s(s), n(SZ(s)), pow(n+1), ph(n+1){
+    pow[0]=1,ph[0]=0;
+    REP(i, n)ph[i+1]=s[i]+ph[i]*p,pow[i+1]=pow[i]*p;
   }
 
   bool operator()(int i, int j) { 
@@ -48,7 +39,7 @@ struct RollingHash{
   }  
 
   inline ull hash(int b, int e){
-    return phash[e]-phash[b]*pow[e-b];
+    return ph[e]-ph[b]*pow[e-b];
   }
   
   inline int find(string t) {
@@ -61,7 +52,7 @@ struct RollingHash{
   
   inline int lcp(int i, int j){
     int l=0,r=min(n-i,n-j)+1;
-    while(r-l>1) {
+    while(r-l>1){
       int m=(l+r)/2;
       (hash(i,i+m) == hash(j,j+m) ? l : r) = m;
     }
@@ -95,7 +86,7 @@ int main(void){
     getline(cin,s);
     getline(cin,t);
     int sl=SZ(s),ans=0;
-    RollingHash rh=RollingHash(s+"\0"+t);
+    RollingHash rh=RollingHash(s+"\1"+t);
     vector<int>sa=suffixArray(rh);
 
     for(int i=0;i+1<rh.n;i++){

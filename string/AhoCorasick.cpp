@@ -7,31 +7,28 @@ using namespace std;
 
 struct AhoCorasick {
   
-  static const int ALPHABET_SIZE = 26;
+  static const int ALPHABET_SIZE = 26, root=0;
   
-  int nodeCount;
+  int N; // num of node
   
   struct Node {
-    int parent, suffLink;
-    int children[ALPHABET_SIZE], transitions[ALPHABET_SIZE];
+    int parent, link;
+    int children[ALPHABET_SIZE], next[ALPHABET_SIZE];
     char charFromParent;
     bool leaf;
     
     Node(){
-      suffLink=-1;
+      link=-1;
       fill(children,children+ALPHABET_SIZE,-1);
-      fill(transitions,transitions+ALPHABET_SIZE,-1);
+      fill(next,next+ALPHABET_SIZE,-1);
     }
   };
   
   vector<Node> nodes;
 
-  AhoCorasick(int maxNodes) {
-    nodes.resize(maxNodes);
-    // create root
-    nodes[0].suffLink = 0;
-    nodes[0].parent = -1;
-    nodeCount = 1;
+  AhoCorasick(int maxNodes):N(1),nodes(maxNodes){
+    nodes[root].link = root;
+    nodes[root].parent = -1;
   }
 
   void addString(string s) {
@@ -40,45 +37,37 @@ struct AhoCorasick {
       char ch = s[i];
       int c = ch - 'a';
       if(!~nodes[cur].children[c]){
-	nodes[nodeCount].parent = cur;
-	nodes[nodeCount].charFromParent = ch;
-	nodes[cur].children[c] = nodeCount++;
+	nodes[N].parent = cur;
+	nodes[N].charFromParent = ch;
+	nodes[cur].children[c] = N++;
       }
       cur = nodes[cur].children[c];
     }
     nodes[cur].leaf = true;
   }
 
-  int suffLink(int id) {
+  int link(int id) {
     Node node = nodes[id];
-    if(node.suffLink == -1)
-      node.suffLink = !node.parent ? 0 : transition(suffLink(node.parent), node.charFromParent);
-    return node.suffLink;
+    if(node.link == -1){
+      if(!node.parent)node.link=root;
+      else node.link=trans(link(node.parent),node.charFromParent);
+    }
+    return node.link;
   }
 
-  int transition(int id, char ch) {
+  int trans(int id, char ch) {
     int c = ch - 'a';
     Node node = nodes[id];
-    if(!~node.transitions[c])
-      node.transitions[c] = ~node.children[c] ? node.children[c] : (!id ? 0 : transition(suffLink(id), ch));
-    return node.transitions[c];
+    if(!~node.next[c]){
+      if(~node.children[c])node.next[c]=node.children[c];
+      else if(!id)node.next[c]=root;
+      else node.next[c]=trans(link(id),ch);
+    }
+    return node.next[c];
   } 
 };
 
 int main(void){
-  AhoCorasick ahoCorasick(1000);
-  ahoCorasick.addString("bc");
-  ahoCorasick.addString("abc");
-  
-  string s = "tabcbc";
-  int node = 0;
-  vector<int> positions;
-  for(int i = 0; i < s.length(); i++) {
-    node = ahoCorasick.transition(node, s[i]);
-    if(ahoCorasick.nodes[node].leaf)positions.push_back(i);
-  }
 
-  for(int i=0;i<positions.size();i++)cout << positions[i] << " ";
-  cout << endl;
   return 0;
 }
