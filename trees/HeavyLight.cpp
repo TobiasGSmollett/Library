@@ -89,45 +89,35 @@ struct HeavyLight {
     }
   }
 
-  static int deltaEffectOnSegment(int delta, int segmentLength){
+  static int deltaSegment(int delta, int segmentLength){
     if(delta==ring.mzero)return ring.mzero;
     // Here you must write a fast equivalent of following slow code:
     // int result = delta;
-    // for (int i = 1; i < segmentLength; i++) result = queryOperation(result, delta);
+    // for (int i = 1; i < segmentLength; i++) result = ring.query(result, delta);
     // return result;
     return delta;
   }
   //value with delta
   int apply(int pt,int i){
-    return ring.modify(value[pt][i],deltaEffectOnSegment(delta[pt][i],len[pt][i]));
+    return ring.modify(value[pt][i],deltaSegment(delta[pt][i],len[pt][i]));
   }
   
   int queryPath(int pt, int from, int to){
-    from+=value[pt].size() >> 1;
-    to += value[pt].size() >> 1;
-    pushDelta(pt,from),pushDelta(pt,to);
-    int res = ring.qzero;
+    int k=value[pt].size()>>1,res = ring.qzero;
+    from+=k,to+=k,pushDelta(pt,from),pushDelta(pt,to);
     for(;from<=to;from=(from+1)>>1,to=(to-1)>>1){
       if(from & 1)res=ring.query(res,apply(pt,from));
       if(!(to & 1))res=ring.query(res,apply(pt,to));
     }
     return res;
   }
-
+  
   void modifyPath(int pt, int from, int to, int del){
-    from+=value[pt].size() >> 1;
-    to += value[pt].size() >> 1;
-    pushDelta(pt,from),pushDelta(pt,to);
-    int ta=-1,tb=-1;
+    int k=value[pt].size()>>1,ta=-1,tb=-1;
+    from+=k,to+=k,pushDelta(pt,from),pushDelta(pt,to);
     for(;from<=to;from=(from+1)>>1, to=(to-1)>>1){
-      if(from & 1){
-	delta[pt][from]=ring.modify(delta[pt][from],del);
-	if(ta == -1)ta=from;
-      }
-      if(!(to & 1)){
-	delta[pt][to]=ring.modify(delta[pt][to],del);
-	if(tb == -1)tb=to;
-      }
+      if(from & 1)delta[pt][from]=ring.modify(delta[pt][from],del),ta=max(ta,from);
+      if(!(to & 1))delta[pt][to]=ring.modify(delta[pt][to],del),tb=max(tb,to);
     }
     for(int i=ta;i>1;i>>=1) value[pt][i>>1]=ring.query(apply(pt,i),apply(pt,i^1));
     for(int i=tb;i>1;i>>=1) value[pt][i>>1]=ring.query(apply(pt,i),apply(pt,i^1));
