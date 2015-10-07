@@ -69,7 +69,7 @@ struct AhoCorasick {
 };
 
 typedef pair<int,int> pii;
-
+/*
 vector<pii> bakerBird(const vector<string>&T, const vector<string>&pattern){
   int pl=pattern.size(),tl=T.size(),pil=pattern[0].size();
   AhoCorasick aho(1000000);
@@ -114,19 +114,76 @@ vector<pii> bakerBird(const vector<string>&T, const vector<string>&pattern){
   }
   return res;
 }
+*/
+
+vector<pii> bakerBird(const vector<string>&T, const vector<vector<string> >&patterns){
+  int pl=patterns[0].size(),tl=T.size(),pil=patterns[0][0].size(),ql=patterns.size();
+  AhoCorasick aho(1000000);
+
+  for(int i=0;i<ql;i++){
+    for(int j=0;j<pl;j++){
+      aho.addString(patterns[i][j]);
+    }
+  }
+
+  vector<vector<int> >acs(ql);
+  for(int k=0;k<ql;k++){
+    for(int i=0;i<pl;i++){
+      int node = 0;
+      for(int j=0;j<pil;j++){
+	node = aho.trans(node, patterns[k][i][j]);
+	if(aho.nodes[node].leaf)acs[k].push_back(node);
+      }
+    }
+  }
+  
+  const int til = T[0].size();
+    
+  vector<vector<int> >td(til);
+  for(int i=0;i<tl;i++){
+    int node = 0;
+    for(int j=0;j<til;j++){
+      node = aho.trans(node, T[i][j]);
+      td[til-j-1].push_back(node);
+    }
+  }
+
+  vector<pii>res;
+
+  for(int q=0;q<ql;q++){
+    int tl2=acs[q].size(),sl=acs[q].size()+tl+1;
+    vector<int>a(acs[q].size()+tl+2,-1);
+    
+    for(int i=0;i<til;i++){
+      vector<int>s=acs[q];
+      s.push_back(-1);
+      for(int j=0;j<til;j++)s.push_back(td[i][j]);
+      for(int k=0,j=-1;k<sl;a[++k]=++j)while(j>=0 && s[k]!=s[j])j=a[j];
+      for(int k=tl2+1;k<=sl;k++){
+	if(a[k]==tl2)res.push_back(pii(k-tl2*2-1,til-i-pil));
+      }
+    }
+  }
+  return res;
+}
+
 
 int main(void){
   ios::sync_with_stdio(false);
   
-  int h,w,r,c;
+  int h,w,q,r,c;
   
   cin >> h >> w;
   vector<string>s(h);
   for(int i=0;i<h;i++)cin >> s[i];
+  cin >> q;
   
-  cin >> r >> c;
-  vector<string>t(r);
-  for(int i=0;i<r;i++)cin >> t[i];
+  vector<vector<string> >t(q);
+  for(int i=0;i<q;i++){
+    cin >> r >> c;
+    t[i].resize(r);
+    for(int j=0;j<r;j++)cin >> t[i][j];
+  }
   
   vector<pii>res=bakerBird(s,t);
   sort(res.begin(),res.end());
