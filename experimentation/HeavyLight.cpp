@@ -3,24 +3,67 @@
 #include<algorithm>
 
 #define REP(i, n) for (int i=0;i<int(n);++i)
-#define FOR(i, a, b) for (int i=int(a);i<int(b);++i)
-#define DWN(i, b, a) for (int i=int(b-1);i>=int(a);--i)
 #define EACH(i,c) for(__typeof((c).begin())i=(c).begin();i!=(c).end();++i)
-#define ALL(A) A.begin(), A.end()
+#define INF (1<<29)
 
 using namespace std;
 
-struct Ring {
-  inline static int query(int a, int b){ return max(a,b); }
-  inline static int modify(int a, int b){ return a+b; }
-  static const int qzero = INT_MIN, mzero = 0;
-} ring;
+typedef long long ll;
+
+class SegmentTree {
+  static const int MAX_N = (1<<18);
+
+  int n,value[MAX_N],delta[MAX_N],size;
+
+  void push(int k){
+    value[k] += delta[k];
+    if(k+1 < size){
+      delta[k*2+1] += delta[k];
+      delta[k*2+2] += delta[k];
+    }
+    delta[k]=0;
+  }
+
+  void add(int a,int b,int v,int k, int l, int r){
+    if(r <= a || b <= l)return;
+    if(a <= l && r <= b)delta[k]+=v,push(k);
+    else {
+      push(k);
+      add(a, b, v, k*2+1, l, (l+r)/2);
+      add(a, b, v, k*2+2, (l+r)/2, r);
+      if(k+1 < size)value[k]=min(value[k*2+1],value[k*2+2]);
+    }
+  }
+  
+  int query(int a,int b,int k,int l, int r){
+    push(k);
+    if(r <= a || b <= l)return INF;
+    if(a <= l && r <= b)return value[k];
+    int vl=query(a,b,k*2+1,l,(l+r)/2);
+    int vr=query(a,b,k*2+2,(l+r)/2,r);
+    return min(vl,vr);
+  }
+  
+public:
+  
+  SegmentTree(int n):n(n){
+    fill(value,value+MAX_N,0);
+    fill(delta,delta+MAX_N,0);
+    int n_=1;
+    while(n_<n)n_*=2;
+    size = n_;
+  }
+
+  void add(int a, int v){ add(a,a+1,v,0,0,n); }
+  void add(int a,int b,int v){ add(a,b,v,0,0,n); }
+  int query(int a,int b){ return query(a,b,0,0,n); }
+};
 
 struct Node {
   int id,val,parent,size,in,out;
   vector<int> children;
   
-  Node():val(ring.mzero){}
+  Node():val(0){}
   Node(int id,int v,vector<int>ch):id(id),val(v),children(ch){}
 };
 
@@ -30,34 +73,18 @@ struct HeavyLight {
   int pathCount,n;
   vector<int>path, pathSize, pathPos, pathRoot;
   Tree tree;
-  vector<vector<int> >value, delta, len; //segment tree
-  
+  vector<SegmentTree> paths;
+
   HeavyLight(Tree tree)
     :pathCount(0),n(tree.size()),path(n),pathSize(n),pathPos(n),pathRoot(n),tree(tree){
     int time=0;
     dfs(0,-1,time);
     buildPaths(0,newPath(0));
     
-    value.resize(pathCount);
-    delta.resize(pathCount);
-    len.resize(pathCount);
-    
     REP(i,pathCount){
-      int m = pathSize[i];
-      value[i].resize(2 * m);
-      fill(ALL(value[i]),0);
-      int k=0;
-      REP(j,m)value[i][j + m] = tree[k++].val;//init value
-      for(int j=2*m-1;j>1;j-=2)
-	value[i][j>>1] = ring.query(value[i][j],value[i][j^1]);
-      
-      delta[i].resize(2 * m);
-      fill(ALL(delta[i]), (int)ring.mzero);
-      
-      len[i].resize(2*m);
-      fill(ALL(len[i]),0);
-      fill(len[i].begin()+m,len[i].begin()+2*m,1);
-      for(int j=2*m-1;j>1;j-=2)len[i][j>>1]=len[i][j]+len[i][j^1];
+      int m = pathSize[i], k = 0;
+      paths.push_back(SegmentTree(2*m));      
+      REP(j,m)paths[i].add(j,tree[k++].val);
     }
   }
 
@@ -77,65 +104,27 @@ struct HeavyLight {
 	buildPaths(*v, 2*tree[*v].size >= tree[u].size ? pt : newPath(*v));
   }
 
-  void pushDelta(int pt, int i){
-    int d=0;
-    for(;(i>>d)>0;d++);
-    DWN(dd,d-1,0){
-      int x=i>>dd;
-      value[pt][x>>1]=apply(pt,x>>1);
-      delta[pt][x]=ring.modify(delta[pt][x],delta[pt][x>>1]);
-      delta[pt][x^1]=ring.modify(delta[pt][x^1],delta[pt][x>>1]);
-      delta[pt][x>>1]=ring.mzero;
-    }
+  int queryPath(int pathId, int from, int to){
+    return paths[pathId].query(from,to);
   }
 
-  static int deltaSegment(int delta, int segmentLength){
-    if(delta==ring.mzero)return ring.mzero;
-    // Here you must write a fast equivalent of following slow code:
-    // int result = delta;
-    // for (int i = 1; i < segmentLength; i++) result = ring.query(result, delta);
-    // return result;
-    return delta;
-  }
-  //value with delta
-  int apply(int pt,int i){
-    return ring.modify(value[pt][i],deltaSegment(delta[pt][i],len[pt][i]));
-  }
-  
-  int queryPath(int pt, int from, int to){
-    int k=value[pt].size()>>1,res = ring.qzero;
-    from+=k,to+=k,pushDelta(pt,from),pushDelta(pt,to);
-    for(;from<=to;from=(from+1)>>1,to=(to-1)>>1){
-      if(from & 1)res=ring.query(res,apply(pt,from));
-      if(!(to & 1))res=ring.query(res,apply(pt,to));
-    }
-    return res;
-  }
-  
-  void modifyPath(int pt, int from, int to, int del){
-    int k=value[pt].size()>>1,ta=-1,tb=-1;
-    from+=k,to+=k,pushDelta(pt,from),pushDelta(pt,to);
-    for(;from<=to;from=(from+1)>>1, to=(to-1)>>1){
-      if(from & 1)delta[pt][from]=ring.modify(delta[pt][from],del),ta=max(ta,from);
-      if(!(to & 1))delta[pt][to]=ring.modify(delta[pt][to],del),tb=max(tb,to);
-    }
-    for(int i=ta;i>1;i>>=1) value[pt][i>>1]=ring.query(apply(pt,i),apply(pt,i^1));
-    for(int i=tb;i>1;i>>=1) value[pt][i>>1]=ring.query(apply(pt,i),apply(pt,i^1));
+  void addPath(int pathId,int from,int to,int val){
+    paths[pathId].add(from,to,val);
   }
   
 #define up(a,b) for(int r; !isAncestor(r = pathRoot[path[a]], b); a = tree[r].parent)
   
   int query(int a, int b) {
-    int res = ring.qzero;
-    up(a,b)res = ring.query(res, queryPath(path[a], 0, pathPos[a]));
-    up(b,a)res = ring.query(res, queryPath(path[b], 0, pathPos[b]));
-    return ring.query(res,queryPath(path[a], min(pathPos[a], pathPos[b]),max(pathPos[a], pathPos[b])));
+    int res = INF;
+    up(a,b)res = min(res, queryPath(path[a], 0, pathPos[a]));
+    up(b,a)res = min(res, queryPath(path[b], 0, pathPos[b]));
+    return min(res,queryPath(path[a], min(pathPos[a], pathPos[b]),max(pathPos[a], pathPos[b])));
   }
 
   void modify(int a, int b, int del){
-    up(a,b)modifyPath(path[a],0,pathPos[a],del);
-    up(b,a)modifyPath(path[b],0,pathPos[b],del);
-    modifyPath(path[a],min(pathPos[a], pathPos[b]),max(pathPos[a], pathPos[b]),del);
+    up(a,b)addPath(path[a],0,pathPos[a],del);
+    up(b,a)addPath(path[b],0,pathPos[b],del);
+    addPath(path[a],min(pathPos[a], pathPos[b]),max(pathPos[a], pathPos[b]),del);
   }
   
   bool isAncestor(int p, int ch){ return tree[p].in <= tree[ch].in && tree[ch].out <= tree[p].out; }
