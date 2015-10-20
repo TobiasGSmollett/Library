@@ -3,6 +3,8 @@
 #include<algorithm>
 #include<cstdio>
 
+#define INF (1<<29)
+
 using namespace std;
 
 typedef long long ll;
@@ -12,8 +14,8 @@ class SegmentTree {
 
   ll n,value[MAX_N],delta[MAX_N],size;
 
-  void push(int k,int l,int r){
-    value[k] += delta[k]*(r-l);
+  void push(int k){
+    value[k] += delta[k];
     if(k+1 < size){
       delta[k*2+1] += delta[k];
       delta[k*2+2] += delta[k];
@@ -25,17 +27,19 @@ class SegmentTree {
     if(r <= a || b <= l)return;
     if(a <= l && r <= b)delta[k] += v;
     else {
-      value[k] += (min(r,b) - max(l,a))*v;
+      //value[k] += (min(r,b) - max(l,a))*v;
       add(a, b, v, k*2+1, l, (l+r)/2);
       add(a, b, v, k*2+2, (l+r)/2, r);
     }
   }
   
-  ll sum(int a,int b,int k,int l, int r){
-    push(k,l,r);
-    if(r <= a || b <= l)return 0;
+  ll query(int a,int b,int k,int l, int r){
+    push(k);
+    if(r <= a || b <= l)return INF;
     if(a <= l && r <= b)return value[k];
-    return sum(a,b,k*2+1,l,(l+r)/2) + sum(a,b,k*2+2,(l+r)/2,r);
+    ll vl=query(a,b,k*2+1,l,(l+r)/2);
+    ll vr=query(a,b,k*2+2,(l+r)/2,r);
+    return (value[k]=min(vl,vr));
   }
   
 public :
@@ -51,12 +55,12 @@ public :
   //add v to [a,b)
   void add(int a,int b,int v){ add(a,b,v,0,0,n); }
 
-  //sum [a,b)
-  ll sum(int a,int b){ return sum(a,b,0,0,n); }
+  //min [a,b)
+  ll query(int a,int b){ return query(a,b,0,0,n); }
 };
 
 
-//Usage PKU 3468
+//Usage
 int main(void){
   ll n,q,a,b,c;
   cin >> n >> q;
@@ -73,7 +77,7 @@ int main(void){
     scanf(" %c",&com);
     if(com=='Q'){
       scanf("%lld %lld",&a, &b);
-      printf("%lld\n",range.sum(a-1,b));
+      printf("%lld\n",range.query(a-1,b));
     } else {
       scanf("%lld %lld %lld",&a,&b,&c);
       range.add(a-1,b,c);
