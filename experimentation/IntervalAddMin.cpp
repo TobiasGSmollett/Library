@@ -12,7 +12,7 @@ typedef long long ll;
 class SegmentTree {
   static const int MAX_N = (1<<18);
 
-  ll n,value[MAX_N],delta[MAX_N],size;
+  int n,value[MAX_N],delta[MAX_N],size;
 
   void push(int k){
     value[k] += delta[k];
@@ -25,21 +25,22 @@ class SegmentTree {
 
   void add(int a,int b,int v,int k, int l, int r){
     if(r <= a || b <= l)return;
-    if(a <= l && r <= b)delta[k] += v;
+    if(a <= l && r <= b)delta[k]+=v,push(k);
     else {
-      //value[k] += (min(r,b) - max(l,a))*v;
+      push(k);
       add(a, b, v, k*2+1, l, (l+r)/2);
       add(a, b, v, k*2+2, (l+r)/2, r);
+      if(k+1 < size)value[k]=min(value[k*2+1],value[k*2+2]);
     }
   }
   
-  ll query(int a,int b,int k,int l, int r){
+  int query(int a,int b,int k,int l, int r){
     push(k);
     if(r <= a || b <= l)return INF;
     if(a <= l && r <= b)return value[k];
-    ll vl=query(a,b,k*2+1,l,(l+r)/2);
-    ll vr=query(a,b,k*2+2,(l+r)/2,r);
-    return (value[k]=min(vl,vr));
+    int vl=query(a,b,k*2+1,l,(l+r)/2);
+    int vr=query(a,b,k*2+2,(l+r)/2,r);
+    return min(vl,vr);
   }
   
 public :
@@ -56,19 +57,19 @@ public :
   void add(int a,int b,int v){ add(a,b,v,0,0,n); }
 
   //min [a,b)
-  ll query(int a,int b){ return query(a,b,0,0,n); }
+  int query(int a,int b){ return query(a,b,0,0,n); }
 };
 
 
 //Usage
 int main(void){
-  ll n,q,a,b,c;
+  int n,q,a,b,c;
   cin >> n >> q;
 
   SegmentTree range = SegmentTree(n);
 
   for(int i=0;i<n;i++){
-    scanf("%lld",&a);
+    scanf("%d",&a);
     range.add(i,i+1,a);
   }
   
@@ -76,10 +77,10 @@ int main(void){
     char com;
     scanf(" %c",&com);
     if(com=='Q'){
-      scanf("%lld %lld",&a, &b);
-      printf("%lld\n",range.query(a-1,b));
+      scanf("%d %d",&a, &b);
+      printf("%d\n",range.query(a-1,b));
     } else {
-      scanf("%lld %lld %lld",&a,&b,&c);
+      scanf("%d %d %d",&a,&b,&c);
       range.add(a-1,b,c);
     }
   }
