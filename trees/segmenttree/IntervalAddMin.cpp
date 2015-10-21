@@ -24,13 +24,13 @@ class SegmentTree {
   }
 
   void add(int a,int b,int v,int k, int l, int r){
+    push(k);
     if(r <= a || b <= l)return;
     if(a <= l && r <= b)delta[k]+=v,push(k);
     else {
-      push(k);
       add(a, b, v, k*2+1, l, (l+r)/2);
       add(a, b, v, k*2+2, (l+r)/2, r);
-      if(k+1 < size)value[k]=min(value[k*2+1],value[k*2+2]);
+      value[k]=min(value[k*2+1],value[k*2+2]);
     }
   }
   
@@ -38,13 +38,10 @@ class SegmentTree {
     push(k);
     if(r <= a || b <= l)return INF;
     if(a <= l && r <= b)return value[k];
-    int vl=query(a,b,k*2+1,l,(l+r)/2);
-    int vr=query(a,b,k*2+2,(l+r)/2,r);
-    return min(vl,vr);
+    return min(query(a,b,k*2+1,l,(l+r)/2),query(a,b,k*2+2,(l+r)/2,r));
   }
   
 public :
-
   SegmentTree(int n):n(n){
     fill(value,value+MAX_N,0);
     fill(delta,delta+MAX_N,0);
@@ -59,7 +56,6 @@ public :
   //min [a,b)
   int query(int a,int b){ return query(a,b,0,0,n); }
 };
-
 
 //Usage
 int main(void){

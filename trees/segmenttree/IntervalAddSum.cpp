@@ -22,12 +22,13 @@ class SegmentTree {
   }
 
   void add(int a,int b,int v,int k, int l, int r){
+    push(k,l,r);
     if(r <= a || b <= l)return;
-    if(a <= l && r <= b)delta[k] += v;
+    if(a <= l && r <= b)delta[k]+=v,push(k,l,r);
     else {
-      value[k] += (min(r,b) - max(l,a))*v;
       add(a, b, v, k*2+1, l, (l+r)/2);
       add(a, b, v, k*2+2, (l+r)/2, r);
+      value[k] = value[k*2+1]+value[k*2+2];
     }
   }
   
@@ -39,7 +40,6 @@ class SegmentTree {
   }
   
 public :
-
   SegmentTree(int n):n(n){
     fill(value,value+MAX_N,0);
     fill(delta,delta+MAX_N,0);
