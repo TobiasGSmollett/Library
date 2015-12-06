@@ -2,14 +2,25 @@
 #include<vector>
 #include<algorithm>
 #include<string>
+#include<cctype>
+#include<cstdio>
 #include<cassert>
+
 
 using namespace std;
 
 struct AhoCorasick {
 
-  static const int ALPHABET_SIZE = 2, root=0;
+  static const int ALPHABET_SIZE = 62, root=0;
 
+  int index(char ch){
+    if(isupper(ch))return ch-'A';
+    if(islower(ch))return 26+ch-'a';
+    if(isdigit(ch))return 52+ch-'0';
+    assert(false);
+    return -1;
+  }
+  
   int N; // num of node
 
   struct Node {
@@ -36,7 +47,7 @@ struct AhoCorasick {
     int cur = 0, sl=s.size();
     for(int i=0;i<sl;i++){
       char ch = s[i];
-      int c = ch - '0';
+      int c = index(ch);
       if(!~nodes[cur].child[c]){
 	nodes[N].parent = cur;
 	nodes[N].ch = ch;
@@ -57,7 +68,7 @@ struct AhoCorasick {
   }
 
   int trans(int id, char ch) {
-    int c = ch - '0';
+    int c = index(ch);
     Node node = nodes[id];
     if(!~node.next[c]){
       if(~node.child[c])node.next[c]=node.child[c];
@@ -72,13 +83,10 @@ typedef pair<int,int> pii;
 
 vector<pii> bakerBird(const vector<string>&T, const vector<string>&pattern){
   int pl=pattern.size(),tl=T.size(),pil=pattern[0].size();
-  AhoCorasick aho(1000000);
+  AhoCorasick aho(500000);
 
-  for(int i=0;i<pl;i++){
-    aho.addString(pattern[i]);
-  }
-   
-
+  for(int i=0;i<pl;i++)aho.addString(pattern[i]);
+  
   vector<int>acc;
   for(int i=0;i<pl;i++){
     int node = 0;
@@ -89,20 +97,19 @@ vector<pii> bakerBird(const vector<string>&T, const vector<string>&pattern){
   }
 
   const int til = T[0].size();
-    
-  vector<vector<int> >td(til);
+  
+  int td[til][tl];
   for(int i=0;i<tl;i++){
     int node = 0;
     for(int j=0;j<til;j++){
       node = aho.trans(node, T[i][j]);
-      td[til-j-1].push_back(node);
+      td[til-j-1][i]=node;
     }
   }
 
   vector<pii>res;
   int tl2=acc.size(),sl=acc.size()+tl+1;
   vector<int>a(acc.size()+tl+2,-1);
-    
   for(int i=0;i<til;i++){
     vector<int>s=acc;
     s.push_back(-1);
@@ -116,23 +123,29 @@ vector<pii> bakerBird(const vector<string>&T, const vector<string>&pattern){
 }
 
 int main(void){
-  ios::sync_with_stdio(false);
-  
   int h,w,r,c;
   
   cin >> h >> w;
   vector<string>s(h);
-  for(int i=0;i<h;i++)cin >> s[i];
-  
+  for(int i=0;i<h;i++){
+    s[i].resize(w);
+    for(int j=0;j<w;j++){
+      scanf(" %c",&s[i][j]);
+    }
+  }
   cin >> r >> c;
   vector<string>t(r);
-  for(int i=0;i<r;i++)cin >> t[i];
-  
+  for(int i=0;i<r;i++){
+    t[i].resize(c);
+    for(int j=0;j<c;j++){
+      scanf(" %c",&t[i][j]);
+    }
+  }
   vector<pii>res=bakerBird(s,t);
   sort(res.begin(),res.end());
 
   for(int i=0;i<res.size();i++)
-    cout << res[i].first << " " << res[i].second << "\n";
+    printf("%d %d\n",res[i].first,res[i].second);
 
   return 0;
 }
