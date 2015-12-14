@@ -1,6 +1,6 @@
-#include<iostream>
-#include<vector>
-#include<algorithm>
+#include <iostream>
+#include <vector>
+#include <algorithm>
 
 #define REP(i, n) for (int i=0;i<int(n);++i)
 #define EACH(i,c) for(__typeof((c).begin())i=(c).begin();i!=(c).end();++i)
@@ -41,9 +41,9 @@ class SegmentTree {
     if(a <= l && r <= b)return value[k];
     return min(query(a,b,k*2+1,l,(l+r)/2),query(a,b,k*2+2,(l+r)/2,r));
   }
-  
+
 public:
-  
+
   SegmentTree(int n):n(n){
     fill(value,value+MAX_N,0);
     fill(delta,delta+MAX_N,0);
@@ -60,7 +60,7 @@ public:
 struct Node {
   int id,val,parent,size,in,out;
   vector<int> children;
-  
+
   Node():val(0){}
   Node(int id,int v,vector<int>ch):id(id),val(v),children(ch){}
 };
@@ -106,9 +106,9 @@ struct HeavyLight {
   void addPath(int pathId,int from,int to,int val){
     paths[pathId].add(from,to+1,val);
   }
-  
+
 #define up(a,b) for(int r; !isAncestor(r = pathRoot[path[a]], b); a = tree[r].parent)
-  
+
   int query(int a, int b) {
     int res = INF;
     up(a,b)res = min(res, queryPath(path[a], 0, pathPos[a]));
@@ -121,7 +121,7 @@ struct HeavyLight {
     up(b,a)addPath(path[b],0,pathPos[b],del);
     addPath(path[a],min(pathPos[a], pathPos[b]),max(pathPos[a], pathPos[b]),del);
   }
-  
+
   bool isAncestor(int p, int ch){ return tree[p].in <= tree[ch].in && tree[ch].out <= tree[p].out; }
 
   int lca(int a,int b){
@@ -137,7 +137,7 @@ int main(void){
   int n;
   cin >> n;
   Tree tree(n);
-  
+
   REP(i,n){
     tree[i].id=i;
     int k;
@@ -150,7 +150,7 @@ int main(void){
   }
 
   HeavyLight hl = HeavyLight(tree);
-  
+
   int q;
   cin >> q;
   while(q--){
