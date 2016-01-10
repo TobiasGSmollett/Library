@@ -1,7 +1,8 @@
 #include<iostream>
 #include<vector>
 #include<algorithm>
-
+#include<cassert>
+#include<cstdlib> 
 #define INF (1<<29)
 
 using namespace std;
@@ -24,37 +25,45 @@ class RedBlackTree{
   node_t *root;
   
   void rotl(node_t *x){
-    node_t *y=x->lp;
-    x->rp=y->lp;
-    if(y->lp)y->lp->pp=x;
-    y->pp=x->pp;
+    node_t *y= x->rp;
+    if(y){
+      x->rp=y->lp;
+      if(y->lp)y->lp->pp=x;
+      y->pp=x->pp;
+    }
     if(!x->pp)root=y;
     else if(x==x->pp->lp)x->pp->lp=y;
     else x->pp->rp=y;
-    y->lp=x;
-    x->pp=y;
+    if(y){
+      y->lp=x;
+      x->pp=y;
+    }
   }
 
   void rotr(node_t *x){
-    node_t *y=x->rp;
-    x->lp=y->rp;
-    if(y->rp)y->rp->pp=x;
-    y->pp=x->pp;
+    node_t *y=x->lp;
+    if(y){
+      x->lp=y->rp;
+      if(y->rp)y->rp->pp=x;
+      y->pp=x->pp;
+    }
     if(!x->pp)root=y;
     else if(x==x->pp->rp)x->pp->rp=y;
     else x->pp->lp=y;
-    y->rp=x;
-    x->pp=y;
+    if(y){
+      y->rp=x;
+      x->pp=y;
+     }
   }
   
   int val(node_t *t){return t->val;}
 
   void insert_fixup(node_t *z){
     while(z->pp && z->pp->color==red){
-      node_t *y=0;
+      node_t *y=(node_t*)NULL;
       if(z->pp==z->pp->pp->lp){
 	y=z->pp->pp->rp;
-	if(y->color==red){
+	if(y && y->color==red){
 	  z->pp->color=black;
 	  y->color=black;
 	  z->pp->pp->color=red;
@@ -64,13 +73,17 @@ class RedBlackTree{
 	  z=z->pp;
 	  rotl(z);
 	}
-	z->pp->color=black;
-	z->pp->pp->color=red;
-	rotr(z->pp->pp);
+	if(z->pp){
+	  z->pp->color=black;
+	  if(z->pp->pp){
+	    z->pp->pp->color=red;
+	    rotr(z->pp->pp);
+	  }
+	}
       }
       else {
 	y=z->pp->pp->lp;
-	if(y->color==red){
+	if(y && y->color==red){
 	  z->pp->color=black;
 	  y->color=black;
 	  z->pp->pp->color=red;
@@ -80,16 +93,20 @@ class RedBlackTree{
 	  z=z->pp;
 	  rotr(z);
 	}
-	z->pp->color=black;
-	z->pp->pp->color=red;
-	rotl(z->pp->pp);
+	if(z->pp){
+	  z->pp->color=black;
+	  if(z->pp->pp){
+	    z->pp->pp->color=red;
+	    rotl(z->pp->pp);
+	  }
+	}
       }
     }
-    root->color=black;
+    if(root)root->color=black;
   }
   
   void insert(node_t *z){
-    node_t *y = 0, *x = root;
+    node_t *y = (node_t*)NULL, *x = root;
     while(x){
       y=x;
       if(z->id < x->id)x=x->lp;
@@ -99,8 +116,8 @@ class RedBlackTree{
     if(!y)root=z;
     else if(z->id < y->id)y->lp=z;
     else y->rp=z;
-    z->lp=0;
-    z->rp=0;
+    z->lp=(node_t*)NULL;
+    z->rp=(node_t*)NULL;
     z->color=red;
     insert_fixup(z);
   }
@@ -199,7 +216,7 @@ class RedBlackTree{
   }
 
   node_t *find(int id, node_t *x){
-    if(!x)return 0;
+    if(!x)return (node_t*)NULL;
     if(x->id == id)return x;
     else if(x->id < id)return find(id,x->rp);
     else return find(id, x->lp);
@@ -207,9 +224,13 @@ class RedBlackTree{
   
 public:
 
+  RedBlackTree(){
+    root=(node_t*)NULL;
+  }
+
   int find(int id){
     node_t *res=find(id,root);
-    return res ? res->val : -1;
+    return (!res) ? -1 : res->val;
   }
   
   void insert(int id,int val){
@@ -217,12 +238,46 @@ public:
   }
 
   void erase(int id){
-    erase(find(id,root));
+    node_t *tmp = find(id,root);
+    if(tmp)erase(tmp);
   }
 };
 
-int main(void){
-  RedBlackTree tree;
+
+void test(){
+  srand(time(NULL));
+  static RedBlackTree tree;
+  vector<int>v(1000,-1);
+  int tc=100;
+  while(tc--){
+    int q=rand()%3;
+    cout << tc << " " << q << endl;
+    if(q==0){
+      int id=rand()%1000,val=rand();
+      cout << "id = " << id << endl;
+      if(v[id]==-1){
+	tree.insert(id,val);
+	v[id]=val;
+      }
+    }
+    /*
+    else if(q==1){
+      int id=rand()%1000;
+      tree.erase(id);
+      v[id]=-1;
+    }
+    */
+    else {
+      int id=rand()%1000;
+      assert(tree.find(id)==v[id]);
+    }
+
+  }
+  cout << "end" << endl;
+}
+
+void test2(){
+  static RedBlackTree tree;
   int q,id,val;
   while(cin >> q){
     if(q==0){
@@ -238,6 +293,9 @@ int main(void){
       cout << tree.find(id) << endl;
     }
   }
+}
 
+int main(){
+  test();
   return 0;
 }
