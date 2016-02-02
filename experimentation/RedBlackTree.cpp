@@ -38,7 +38,6 @@ class RedBlackTree{
 
     if(y)y->lp=x;
     if(x)x->pp=y;
-    
   }
 
   void rotr(node_t *x){
@@ -125,72 +124,82 @@ class RedBlackTree{
     insert_fixup(z);
   }
 
-  void transplant(node_t *u, node_t *v){
-    if(!u->pp)root=v;
-    else if(u==u->pp->lp)u->pp->lp=v;
-    else u->pp->rp=v;
-    v->pp=u->pp;
-  }
-
   void erase_fixup(node_t *x){
-    while(x!=root && x->color==black){
-      node_t *w=0;
+    node_t *w=(node_t*)NULL;
+    while(x && x!=root && x->color==black){
       if(x==x->pp->lp){
 	w=x->pp->rp;
-	if(w->color==red){
+	if(w && w->color==red){
 	  w->color=black;
 	  x->pp->color=red;
 	  rotl(x->pp);
 	  w=x->pp->rp;
 	}
-	if(w->lp->color==black && w->rp->color==black){
+	else if(w && w->lp && w->rp && w->lp->color==black && w->rp->color==black){
 	  w->color=red;
 	  x=x->pp;
 	}
-	else if(w->rp->color==black){
-	  w->lp->color=black;
+	else if(w && w->rp && w->rp->color==black){
+	  if(w->lp)w->lp->color=black;
 	  w->color=red;
 	  rotr(w);
 	  w=x->pp->rp;
 	}
-	w->color=x->pp->color;
-	x->pp->color=black;
-	w->rp->color=black;
-	rotl(x->pp);
-	x=root;
+	else {
+	  if(w)w->color=x->pp->color;
+	  x->pp->color=black;
+	  if(w && w->rp)w->rp->color=black;
+	  rotl(x->pp);
+	  x=root;
+	}
       }
       else {
 	w=x->pp->lp;
-	if(w->color==red){
+	if(w && w->color==red){
 	  w->color=black;
 	  x->pp->color=red;
 	  rotr(x->pp);
 	  w=x->pp->lp;
 	}
-	if(w->rp->color==black && w->lp->color==black){
+	else if(w && w->rp && w->lp && w->rp->color==black && w->lp->color==black){
 	  w->color=red;
 	  x=x->pp;
 	}
-	else if(w->lp->color==black){
-	  w->rp->color=black;
+	else if(w && w->lp && w->lp->color==black){
+	  if(w->rp)w->rp->color=black;
 	  w->color=red;
 	  rotl(w);
 	  w=x->pp->lp;
 	}
-	w->color=x->pp->color;
-	x->pp->color=black;
-	w->lp->color=black;
-	rotr(x->pp);
-	x=root;
+	else {
+	  if(w)w->color=x->pp->color;
+	  x->pp->color=black;
+	  if(w && w->lp)w->lp->color=black;
+	  rotr(x->pp);
+	  x=root;
+	}
       }
     }
+    if(x)x->color=black;
+  }
+
+  void transplant(node_t *u, node_t *v){
+    if(!u->pp)root=v;
+    else if(u==u->pp->lp)u->pp->lp=v;
+    else u->pp->rp=v;
+    if(v)v->pp=u->pp;
+  }
+
+  node_t *tree_minimum(node_t *x){
+    while(x->lp)x=x->lp;
+    return x;
   }
   
   void erase(node_t *z){
+    if(!z)return;
 
     node_t *x=0,*y=z;
     bool y_original_color=y->color;
-
     if(!z->lp){
       x=z->rp;
       transplant(z,z->rp);
@@ -200,27 +209,28 @@ class RedBlackTree{
       transplant(z,z->lp);
     }
     else {
+      y=tree_minimum(z->rp);
       y_original_color=y->color;
       x=y->rp;
-      if(y->pp==z)x->pp=y;
+      if(y->pp==z && x)x->pp=y;
       else {
 	transplant(y,y->rp);
 	y->rp=z->rp;
-	y->rp->pp=y;
+	if(y->rp)y->rp->pp=y;
       }
       transplant(z,y);
       y->lp=z->lp;
       y->lp->pp=y;
       y->color=z->color;
     }
+
     if(y_original_color==black)erase_fixup(x);
+    cout << "b" << endl;
     delete z;
   }
 
   node_t *find(int id, node_t *x){
-    node_t *y = (node_t*)NULL;
     while(x){
-      y=x;
       if(id == x->id)return x;
       if(id < x->id)x=x->lp;
       else x=x->rp;
@@ -249,23 +259,21 @@ public:
   }
 };
 
-
+RedBlackTree tree;
 void test(){
   srand(time(NULL));
-  static RedBlackTree tree;
   vector<int>v(1000,-1);
-  int tc=1000;
+  int tc=8000;
   while(tc--){
     int q=rand()%3;
-    cout << tc << " " << q << endl;
+    cout << q << endl;
     if(q==0){
       int id=rand()%1000,val=rand()%100;
-      cout << "id = " << id << endl;
       if(v[id]==-1){
 	tree.insert(id,val);
 	v[id]=val;
-	}
-    }
+      }
+    }    
     else if(q==1){
       int id=rand()%1000;
       tree.erase(id);
@@ -277,9 +285,7 @@ void test(){
       if(a!=b)cout << a << " " << b << endl;
       assert(a==b);
     }
-
   }
-  cout << "end" << endl;
 }
 
 void test2(){
