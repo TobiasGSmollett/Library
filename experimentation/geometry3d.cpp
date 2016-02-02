@@ -157,6 +157,15 @@ struct Triangle{
   Triangle(Point p0, Point p1, Point p2):plane(Plane(p0,p1,p2)){
     pos[0]=p0,pos[1]=p1,pos[2]=p2;
   }
+
+  bool contains(Point p){
+    Point vt[3],v[3],c[3];
+    for(int i=0;i<3;i++)vt[i]=pos[i]-p;
+    for(int i=0;i<3;i++)v[i]=pos[(i+1)%3]-pos[i];
+    for(int i=0;i<3;i++)c[i]=vt[i].cross(v[i]);
+    Real dot0=c[0].dot(c[1]),dot1=c[1].dot(c[2]);
+    return sgn(dot0 * dot1)>0;
+  }
 };
 
 int main(void){
