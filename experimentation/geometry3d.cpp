@@ -5,6 +5,8 @@
 #include<cfloat>
 #include<iostream>
 #include<cassert>
+#include<ctime>
+#include<cstdlib>
 
 #define curr(P, i) P[(i) % P.size()]
 #define next(P, i) P[(i+1) % P.size()]
@@ -94,12 +96,13 @@ struct Plane{
   }
 
   Real dist(Point p) const {
-    return a*p.x + b*p.y + c*p.z + d;
+    return abs(a*p.x + b*p.y + c*p.z + d)/(a*a + b*b + c*c);
   }
 
   //(-1,0,1) -> (back,on,front)
+  //wrong
   int position(Point p) const {
-    return sgn(dist(p));
+    return sgn(a*p.x + b*p.y + c*p.z + d);
   }
 
   bool isIntersection(Segment seg){
@@ -113,8 +116,11 @@ struct Plane{
     return true;
   }
 
+  //wrong
   bool isIntersection2(Segment seg){
-    return position(seg.pos)!=position(seg.vec);
+    int a=position(seg.pos),b=position(seg.vec);
+    cout << a<<" "<<b<<endl;
+    return a!=b||a==0||b==0;
   }
   
   Point intersection(Segment seg){
@@ -127,6 +133,7 @@ struct Plane{
     return seg.pos + vec * pln_l;
   }
 
+  //wrong
   bool isParallel(Plane p){
     Real dt = a*p.a + b*p.b + c*p.c;
     return sgn(abs(dt),1.0) >= 0;
@@ -217,12 +224,48 @@ struct Triangle{
   }
 };
 
+
+/**********************TEST*************************/
+
+Real myrand(){
+  return rand()%100;
+}
+
+Point randomPoint(){
+  return Point(myrand(),myrand(),myrand());
+}
+
+Segment randomSegment(){
+  return Segment(randomPoint(),randomPoint());
+}
+
+Plane randomPlane(){
+  return Plane(myrand(),myrand(),myrand(),myrand());
+}
+
+void testPlaneParallel(){
+  for(int i=0;i<100000;i++){
+    Plane a=randomPlane(),b=randomPlane();
+    b.d+=myrand();
+    assert(a.isParallel(b));
+  }
+}
+
+void testPlaneSegmentIntersection(){
+  for(int i=0;i<100000;i++){
+    Plane a = randomPlane();
+    Segment c = Segment(Point(0.0,0.0,0.0),Point(0.0,0.0,0.0));
+    assert(!a.isIntersection(c) || (a.position(c.pos)==0 && a.isIntersection(c)));
+    Segment b = randomSegment();
+    //cout << a.isIntersection(b) <<" "<< a.isIntersection2(b) << endl;
+    assert(a.isIntersection(b) == a.isIntersection2(b));
+  }
+}
+
 int main(void){
-
-
-  Point n=Point(1,2,3),p=Point(1,1,1);
-  Plane d = Plane(n,p);
-  cout << d.a << " " << d.b << " " << d.c << " " << d.d << endl;
+  srand(time(NULL));
+  testPlaneParallel();
+  testPlaneSegmentIntersection();
 
   return 0;
 }
