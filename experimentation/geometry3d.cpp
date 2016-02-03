@@ -126,6 +126,21 @@ struct Plane{
     Real pln_l=l/dt;
     return seg.pos + vec * pln_l;
   }
+
+  bool isParallel(Plane p){
+    Real dt = a*p.a + b*p.b + c*p.c;
+    return sgn(abs(dt),1.0) >= 0;
+  }
+
+  Segment intersection(Plane p){
+    assert(!isParallel(p));
+    Point vec = Point(a,b,c).cross(Point(p.a,p.b,p.c));
+    Point pos;
+    if(sgn(vec.z)!=0)pos=Point(b*p.d-p.b*d, p.a*d-a*p.d, 0.0)/vec.z;
+    else if(sgn(vec.y)!=0)pos=Point(p.c*d-c*p.d, 0.0, a*p.d-p.a*d)/vec.y;
+    else pos=Point(0.0, c*p.d-p.c*d, p.b*d-b*p.d)/vec.x;
+    return Segment(pos, vec);
+  }
 };
 
 struct Sphere{
@@ -165,6 +180,17 @@ struct Triangle{
     for(int i=0;i<3;i++)c[i]=vt[i].cross(v[i]);
     Real dot0=c[0].dot(c[1]),dot1=c[1].dot(c[2]);
     return sgn(dot0 * dot1)>0;
+  }
+
+  bool isIntersection(Segment seg){
+    if(!plane.isIntersection(seg))return false;
+    Point tmp = plane.intersection(seg);
+    return contains(tmp);
+  }
+
+  Point intersection(Segment seg){
+    assert(isIntersection(seg));
+    return plane.intersection(seg);
   }
 };
 
