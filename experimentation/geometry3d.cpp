@@ -192,6 +192,29 @@ struct Triangle{
     assert(isIntersection(seg));
     return plane.intersection(seg);
   }
+
+  bool isIntersection(Plane p){
+    int side[3];
+    for(int i=0;i<3;i++)side[i]=p.position(pos[i]);
+    for(int i=0;i<2;i++)
+      if(side[i] != side[i+1])return true;
+    return false;
+  }
+
+  bool check(Triangle tri){
+    Point v[3];
+    bool hit[3];
+    for(int i=0;i<3;i++)v[i]=pos[(i+1)%2]-tri.pos[i];
+    for(int i=0;i<3;i++)
+      hit[(i+1)%2]=tri.isIntersection(Segment(pos[i],v[(i+1)%2]));
+    for(int i=0;i<3;i++)
+      if(hit[i] && hit[(i+1)%2])return true;
+    return false;
+  }
+  
+  bool isIntersection(Triangle tri){
+    return check(tri) || tri.check(*this);
+  }
 };
 
 int main(void){
