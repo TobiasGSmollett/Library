@@ -96,7 +96,8 @@ struct Plane{
   }
 
   Real dist(Point p) const {
-    return abs(a*p.x + b*p.y + c*p.z + d)/(a*a + b*b + c*c);
+    // return abs(a*p.x + b*p.y + c*p.z + d)/(a*a + b*b + c*c);
+    return  a*p.x + b*p.y + c*p.z + d;
   }
 
   //(-1,0,1) -> (back,on,front)
@@ -133,10 +134,9 @@ struct Plane{
     return seg.pos + vec * pln_l;
   }
 
-  //wrong
   bool isParallel(Plane p){
     Real dt = a*p.a + b*p.b + c*p.c;
-    return sgn(abs(dt),1.0) >= 0;
+    return  sgn(dt, -1.0) <= 0 || 0 <= sgn(dt);
   }
 
   Segment intersection(Plane p){
@@ -265,7 +265,7 @@ void testPlaneSegmentIntersection(){
 int main(void){
   srand(time(NULL));
   testPlaneParallel();
-  testPlaneSegmentIntersection();
+  //testPlaneSegmentIntersection();
 
   return 0;
 }
