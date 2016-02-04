@@ -54,7 +54,8 @@ struct Point{
     return !sgn(dist(p));
   }
   bool operator < (const Point &p) const {
-    return (p.x!=x)?x<p.x:y<p.y;
+    //return (p.x!=x)?x<p.x:y<p.y;
+    return (p.x!=x) ? x<p.x : (p.y!=y)? y<p.y : z<p.z;
   }
   Real norm() const {
     return sqr(dot(*this)); //return sqr(x*x + y*y + z*z);
@@ -66,10 +67,10 @@ struct Point{
     return x*a.x+y*a.y+z*a.z;
   }
   Point cross(const Point &a) const {
-    return Point(y*a.z-z*a.y,z*a.x-x*a.z,x*a.y-y*a.x);
+    return Point(y*a.z - z*a.y, z*a.x - x*a.z, x*a.y - y*a.x);
   }
   static Point cross(const Point &a, const Point &b, const Point &c) {
-    return (c-b).cross(b-a);
+    return (b-a).cross(c-b);
   }
   Point normalize() const {
     return (*this)/norm();
@@ -84,8 +85,10 @@ struct Segment{
 struct Plane{
   Real a,b,c,d; //ax+by+cx+d=0
 
+private:
   Plane(Real a,Real b,Real c,Real d):a(a),b(b),c(c),d(d){}
-  
+
+public:
   Plane(Point normal, Point p){
     Point n = normal.normalize();
     (*this) = Plane(n.x, n.y, n.z, -n.dot(p));
@@ -96,38 +99,23 @@ struct Plane{
   }
 
   Real dist(Point p) const {
-    // return abs(a*p.x + b*p.y + c*p.z + d)/(a*a + b*b + c*c);
-    return  a*p.x + b*p.y + c*p.z + d;
+    return abs(a*p.x + b*p.y + c*p.z + d);
   }
 
   //(-1,0,1) -> (back,on,front)
-  //wrong
   int position(Point p) const {
     return sgn(a*p.x + b*p.y + c*p.z + d);
   }
 
   bool isIntersection(Segment seg){
-    Real l = dist(seg.pos);
-    Real vec_l = seg.vec.norm();
-    if(sgn(vec_l,l)<0)return false;
-    Point vec = seg.vec / vec_l;
-    Real dt = vec.dot(Point(-a,-b,-c));
-    Real pln_l=l/dt;
-    if(sgn(pln_l,vec_l)>0)return false;
-    return true;
-  }
-
-  //wrong
-  bool isIntersection2(Segment seg){
     int a=position(seg.pos),b=position(seg.vec);
-    cout << a<<" "<<b<<endl;
-    return a!=b||a==0||b==0;
+    return abs(a+b)<2;
   }
   
   Point intersection(Segment seg){
     assert(isIntersection(seg));
     Real l = dist(seg.pos);
-    Real vec_l = seg.vec.norm();
+    Real vec_l = seg.vec.dot(seg.vec);
     Point vec = seg.vec / vec_l;
     Real dt = vec.dot(Point(-a,-b,-c));
     Real pln_l=l/dt;
@@ -136,7 +124,7 @@ struct Plane{
 
   bool isParallel(Plane p){
     Real dt = a*p.a + b*p.b + c*p.c;
-    return  sgn(dt, -1.0) <= 0 || 0 <= sgn(dt);
+    return sgn(dt, -1.0) <= 0 || 0 <= sgn(dt);
   }
 
   Segment intersection(Plane p){
@@ -240,32 +228,41 @@ Segment randomSegment(){
 }
 
 Plane randomPlane(){
-  return Plane(myrand(),myrand(),myrand(),myrand());
+  return Plane(randomPoint(),randomPoint());
+  return Plane(randomPoint(),randomPoint(),randomPoint());
 }
 
 void testPlaneParallel(){
   for(int i=0;i<100000;i++){
-    Plane a=randomPlane(),b=randomPlane();
+    Plane a=randomPlane(),b=a;
     b.d+=myrand();
     assert(a.isParallel(b));
   }
 }
 
 void testPlaneSegmentIntersection(){
-  for(int i=0;i<100000;i++){
+  for(int i=0;i<100;i++){
     Plane a = randomPlane();
-    Segment c = Segment(Point(0.0,0.0,0.0),Point(0.0,0.0,0.0));
-    assert(!a.isIntersection(c) || (a.position(c.pos)==0 && a.isIntersection(c)));
     Segment b = randomSegment();
+    if(a.isIntersection(b)){
+      Point res = a.intersection(b);
+      cout << res.x << " " << res.y << " " << res.z << endl;
+    }
+    //cout << a.a << " " << a.b << " " << a.c << " " << a.d << endl;
+    //cout << b.pos.x << " " << b.pos.y << " " << b.pos.z << endl;
+    //cout << b.vec.x << " " << b.vec.y << " " << b.vec.z << endl;
+    //a.isIntersection2(b);
     //cout << a.isIntersection(b) <<" "<< a.isIntersection2(b) << endl;
-    assert(a.isIntersection(b) == a.isIntersection2(b));
+    //assert(a.isIntersection(b) == a.isIntersection2(b));
   }
+
+  
 }
 
 int main(void){
   srand(time(NULL));
   testPlaneParallel();
-  //testPlaneSegmentIntersection();
+  testPlaneSegmentIntersection();
 
   return 0;
 }
