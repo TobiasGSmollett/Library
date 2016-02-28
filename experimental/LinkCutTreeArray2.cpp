@@ -15,30 +15,32 @@ struct LinkCutTree {
 		     mini(n,INF),minId(n,-1),lazy(n,0),rev(n,false){}
 
   void update(int id){
+    int l=left[id], r=right[id];
     mini[id]=val[id],minId[id]=id;
     push(id);
-    if(left[id]>=0)push(left[id]);
-    if(right[id]>=0)push(right[id]);
+    if(l>=0)push(l);
+    if(r>=0)push(r);
     
-    if(left[id]>=0 && mini[id]>mini[left[id]]){
-      mini[id] = mini[left[id]];
-      minId[id] = minId[left[id]];
+    if(l>=0 && mini[id]>mini[l]){
+      mini[id] = mini[l];
+      minId[id] = minId[l];
     }
-    if(right[id]>=0 && mini[id]>mini[right[id]]){
-      mini[id] = mini[right[id]];
-      minId[id] = minId[right[id]];
+    if(right[id]>=0 && mini[id]>mini[r]){
+      mini[id] = mini[r];
+      minId[id] = minId[r];
     }
   }
    
   void push(int id){
+    int l=left[id], r=right[id];
     if(rev[id]){
       rev[id]=false;
-      swap(left[id],right[id]);
-      if(left[id]>=0)rev[left[id]]=!rev[left[id]];
-      if(right[id]>=0)rev[right[id]]=!rev[right[id]];
+      swap(left[id],right[id]), swap(l,r);
+      if(l>=0)rev[l]=!rev[l];
+      if(r>=0)rev[r]=!rev[r];
     }
-    if(left[id]>=0)lazy[left[id]]+=lazy[id];
-    if(right[id]>=0)lazy[right[id]]+=lazy[id];
+    if(l>=0)lazy[l]+=lazy[id];
+    if(r>=0)lazy[r]+=lazy[id];
     val[id]+=lazy[id],mini[id]+=lazy[id],lazy[id]=0;
   }
   
@@ -53,7 +55,6 @@ struct LinkCutTree {
 
   void rotate(int id){
     int p = parent[id], q = parent[p];
-    push(p),push(id);
     bool isL = id==left[p], isRoot = is_root(p);
     connect((isL ? right : left)[id], p, isL);
     connect(p, id, !isL);
@@ -65,7 +66,6 @@ struct LinkCutTree {
   void splay(int id){
     while(!is_root(id)){
       int p = parent[id];
-      push(p),push(id);
       if(!is_root(p))rotate( (id==left[p])^(p==left[parent[p]]) ? p : id );
       rotate(id);
     }
@@ -79,7 +79,6 @@ struct LinkCutTree {
     return last;
   }
 
-  //slow
   int find_root(int id){
     expose(id);
     while(right[id]!=-1)id = right[id];
@@ -104,8 +103,7 @@ struct LinkCutTree {
 
   void cut(int id){
     expose(id);
-    parent[right[id]]=-1;
-    right[id]=-1;
+    parent[right[id]] = right[id] = -1;
   }
 
   int lca(int ch, int p){
