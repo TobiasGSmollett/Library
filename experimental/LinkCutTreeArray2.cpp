@@ -37,9 +37,8 @@ struct LinkCutTree {
       if(left[id]>=0)rev[left[id]]=!rev[left[id]];
       if(right[id]>=0)rev[right[id]]=!rev[right[id]];
     }
-    if(left[id])lazy[left[id]]+=lazy[id];
-    if(right[id])lazy[right[id]]+=lazy[id];
-
+    if(left[id]>=0)lazy[left[id]]+=lazy[id];
+    if(right[id]>=0)lazy[right[id]]+=lazy[id];
     val[id]+=lazy[id],mini[id]+=lazy[id],lazy[id]=0;
   }
   
