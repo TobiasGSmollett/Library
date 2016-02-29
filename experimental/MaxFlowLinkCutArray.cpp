@@ -13,31 +13,25 @@ struct edge{int to,cap,rev;};
 struct LinkCutTree {
   vector<int>left,right,parent,val,mini,minId,lazy;
   vector<edge *>edges;
-  LinkCutTree(int n):left(n,-1),right(n,-1),parent(n,-1),val(n,0),
-		     mini(n,INF),minId(n,-1),lazy(n,0),edges(n){}
   
   LinkCutTree(int n,int v):left(n,-1),right(n,-1),parent(n,-1),val(n,v),
-			   mini(n,INF),minId(n,-1),lazy(n,0),edges(n,NULL){}
-  
-  void update(int id){
-    mini[id]=val[id],minId[id]=id;
-    
-    if(left[id]>=0 && mini[id]>mini[left[id]]){
-      mini[id] = mini[left[id]];
-      minId[id] = minId[left[id]];
-    }
-    if(right[id]>=0 && mini[id]>=mini[right[id]]){
-      mini[id] = mini[right[id]];
-      minId[id] = minId[right[id]];
-    }
+			   mini(n,INF),minId(n,-1),lazy(n,0),edges(n,NULL){}  
+  void push(int id){
+    int l=left[id], r=right[id];
+    if(l>=0)lazy[l]+=lazy[id];
+    if(r>=0)lazy[r]+=lazy[id];
+    val[id]+=lazy[id], mini[id]+=lazy[id], lazy[id]=0;
+  }
+
+  void update_min(int id, int ch){
+    if(mini[id]>mini[ch])mini[id] = mini[ch], minId[id] = minId[ch];
   }
   
-  void apply(int id, int v){ lazy[id]+=v, val[id]+=v, mini[id]+=v; }
-  
-  void push(int id){
-    if(left[id]>=0)apply(left[id],lazy[left[id]]);
-    if(right[id]>=0)apply(right[id],lazy[right[id]]);
-    lazy[id]=0;
+  void update(int id){
+    int l=left[id], r=right[id];
+    mini[id]=val[id], minId[id]=id, push(id);
+    if(l>=0)push(l),update_min(id,l);
+    if(r>=0)push(r),update_min(id,r);
   }
   
   bool is_root(int id){
@@ -52,15 +46,11 @@ struct LinkCutTree {
   void rotate(int id){
     int p = parent[id], q = parent[p];
     push(p),push(id);
-    
     bool isL = id==left[p], isRoot = is_root(p);
-
     connect((isL ? right : left)[id], p, isL);
     connect(p, id, !isL);
-
     if(!isRoot)connect(id,q,p==left[q]);
     else parent[id]=q;
-
     update(p);
   }
 
@@ -70,7 +60,7 @@ struct LinkCutTree {
       if(!is_root(p))rotate( (id==left[p])^(p==left[parent[p]]) ? p : id );
       rotate(id);
     }
-    push(id),update(id);
+    update(id);
   }
 
   int expose(int id){
@@ -81,7 +71,6 @@ struct LinkCutTree {
     return last;
   }
 
-  //slow
   int find_root(int id){
     expose(id);
     while(right[id]!=-1)id = right[id];
@@ -95,7 +84,7 @@ struct LinkCutTree {
     parent[ch]=p;
     left[p]=ch;
   }
-
+  
   void link(int c,int p,int v,edge *e){
     link(c,p);
     val[c]=v;
@@ -108,10 +97,9 @@ struct LinkCutTree {
     if(right[id]<0)return;
     parent[right[id]]=-1;
     right[id]=-1;
-
     val[id]=INF;
   }
-
+  
   int lca(int ch, int p){
     expose(ch);
     return expose(p);
@@ -122,7 +110,7 @@ struct LinkCutTree {
   }
   void add(int id, int val){
     expose(id);
-    apply(id,val);
+    lazy[id]=val;
   }
 };
 
@@ -176,18 +164,13 @@ int max_flow(int s,int t){
     for(int i=0;i<n;i++)lists[i].clear();
     while(true){
       int v = tree.find_root(s);
-      //cout << tree.getMinId(s) << endl;
       if(v==t){
 	v=tree.getMinId(s);
 	tree.expose(v);
-	//expose(v=nodes[minId(s)]);
 	flow += tree.mini[v];
-	//flow+=v->mini;
 	tree.add(s,-tree.mini[v]);
 	while(true){
 	  v=tree.getMinId(s);
-	  tree.expose(v);
-	  //expose(v=nodes[minId(s)]);
 	  if(tree.val[v]>0)break;
 	  g[tree.edges[v]->to][tree.edges[v]->rev].cap += tree.edges[v]->cap;
 	  tree.edges[v]->cap = 0;

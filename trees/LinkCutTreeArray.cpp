@@ -15,16 +15,13 @@ struct LinkCutTree {
 		     mini(n,INF),minId(n,-1),lazy(n,0),rev(n,false){}
 
   void push_sub(int id, int ch){
-    if(ch>=0){
-      if(rev[id])rev[ch]=!rev[ch];
-      lazy[ch]+=lazy[id];
-    }
+    if(ch>=0)lazy[ch]+=lazy[id];
+    if(ch>=0 && rev[id])rev[ch]=!rev[ch];
   }
   
   void push(int id){
     int l=left[id], r=right[id];
-    push_sub(id,l), push_sub(id,r);
-    rev[id] = false;
+    push_sub(id,l), push_sub(id,r), rev[id] = false;
     swap(left[id],right[id]);
     val[id]+=lazy[id], mini[id]+=lazy[id], lazy[id]=0;
   }
@@ -39,7 +36,7 @@ struct LinkCutTree {
     if(l>=0)push(l),update_min(id,l);
     if(r>=0)push(r),update_min(id,r);
   }
-     
+  
   bool is_root(int id){
     return parent[id]<0 || (left[parent[id]]!=id && right[parent[id]]!=id);
   }
@@ -51,6 +48,7 @@ struct LinkCutTree {
 
   void rotate(int id){
     int p = parent[id], q = parent[p];
+    push(p),push(id);
     bool isL = id==left[p], isRoot = is_root(p);
     connect((isL ? right : left)[id], p, isL);
     connect(p, id, !isL);
@@ -74,34 +72,24 @@ struct LinkCutTree {
     splay(id);
     return last;
   }
-
   int find_root(int id){
     expose(id);
     while(right[id]!=-1)id = right[id];
     return id;
   }
-  
   bool is_connected(int x, int y){
-    if(x == y)return true;
     expose(x), expose(y);
     return (parent[x] != -1);
   }
-
   void evert(int p){
-    expose(p);
-    rev[p]=!rev[p];
+    expose(p), rev[p] = !rev[p];
   }
-
   void link(int ch, int p){
-    evert(ch);
-    parent[ch]=p;
+    evert(ch), parent[ch]=p;
   }
-
   void cut(int id){
-    expose(id);
-    parent[right[id]] = right[id] = -1;
+    expose(id), parent[right[id]] = right[id] = -1;
   }
-
   int lca(int ch, int p){
     expose(ch);
     return expose(p);
@@ -111,18 +99,14 @@ struct LinkCutTree {
     return minId[id];
   }
   int min(int from, int to){
-    evert(from);
-    expose(to);
+    evert(from), expose(to);
     return mini[to];
   }
   void add(int id, int val){
-    expose(id);
-    lazy[id]=val;
+    expose(id), lazy[id]=val;
   }
   void add(int from, int to, int v){
-    evert(from);
-    expose(to);
-    lazy[to]+=v;
+    evert(from), expose(to), lazy[to]+=v;
   }
 };
 
