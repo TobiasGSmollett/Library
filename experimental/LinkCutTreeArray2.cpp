@@ -14,36 +14,32 @@ struct LinkCutTree {
   LinkCutTree(int n):left(n,-1),right(n,-1),parent(n,-1),val(n,0),
 		     mini(n,INF),minId(n,-1),lazy(n,0),rev(n,false){}
 
-  void update(int id){
-    int l=left[id], r=right[id];
-    mini[id]=val[id],minId[id]=id;
-    push(id);
-    if(l>=0)push(l);
-    if(r>=0)push(r);
-    
-    if(l>=0 && mini[id]>mini[l]){
-      mini[id] = mini[l];
-      minId[id] = minId[l];
+  void push_sub(int id, int ch){
+    if(ch>=0){
+      if(rev[id])rev[ch]=!rev[ch];
+      lazy[ch]+=lazy[id];
     }
-    if(r>=0 && mini[id]>mini[r]){
-      mini[id] = mini[r];
-      minId[id] = minId[r];
-    }
-  }
-   
-  void push(int id){
-    int l=left[id], r=right[id];
-    if(rev[id]){
-      rev[id]=false;
-      swap(left[id],right[id]), swap(l,r);
-      if(l>=0)rev[l]=!rev[l];
-      if(r>=0)rev[r]=!rev[r];
-    }
-    if(l>=0)lazy[l]+=lazy[id];
-    if(r>=0)lazy[r]+=lazy[id];
-    val[id]+=lazy[id],mini[id]+=lazy[id],lazy[id]=0;
   }
   
+  void push(int id){
+    int l=left[id], r=right[id];
+    push_sub(id,l), push_sub(id,r);
+    rev[id] = false;
+    swap(left[id],right[id]);
+    val[id]+=lazy[id], mini[id]+=lazy[id], lazy[id]=0;
+  }
+
+  void update_min(int id, int ch){
+    if(mini[id]>mini[ch])mini[id] = mini[ch], minId[id] = minId[ch];
+  }
+  
+  void update(int id){
+    int l=left[id], r=right[id];
+    mini[id]=val[id], minId[id]=id, push(id);
+    if(l>=0)push(l),update_min(id,l);
+    if(r>=0)push(r),update_min(id,r);
+  }
+     
   bool is_root(int id){
     return parent[id]<0 || (left[parent[id]]!=id && right[parent[id]]!=id);
   }
