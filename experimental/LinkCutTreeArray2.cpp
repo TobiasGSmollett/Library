@@ -25,7 +25,7 @@ struct LinkCutTree {
       mini[id] = mini[l];
       minId[id] = minId[l];
     }
-    if(right[id]>=0 && mini[id]>mini[r]){
+    if(r>=0 && mini[id]>mini[r]){
       mini[id] = mini[r];
       minId[id] = minId[r];
     }
@@ -69,7 +69,7 @@ struct LinkCutTree {
       if(!is_root(p))rotate( (id==left[p])^(p==left[parent[p]]) ? p : id );
       rotate(id);
     }
-    push(id),update(id);
+    update(id);
   }
 
   int expose(int id){
