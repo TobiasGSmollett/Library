@@ -12,11 +12,11 @@ struct node_t{
 
   node_t(int id,int v):id(id),val(v),mini(v){
     pp=lp=rp=NULL;
-    rev=false; 
-    lazy=0; 
+    rev=false;
+    lazy=0;
     update();
   }
-   
+
   void update(){
     mini=val,minId=id;
     push();
@@ -25,7 +25,7 @@ struct node_t{
     if(lp && mini>lp->mini)mini=lp->mini,minId=lp->minId;
     if(rp && mini>rp->mini)mini=rp->mini,minId=rp->minId;
   }
-   
+
   void push(){
     if(rev){
       rev=false;
@@ -38,11 +38,11 @@ struct node_t{
 
     val+=lazy,mini+=lazy,lazy=0;
   }
- 
+
   bool is_root(){
     return !pp || (pp->lp != this && pp->rp != this);
   }
-  
+
   void rotr(){
     node_t *q=pp,*r=q->pp;
     if((q->lp=rp))rp->pp=q;
@@ -73,16 +73,16 @@ struct node_t{
       q->push();
       push();
       if(q->is_root()){
-	if(q->lp==this)rotr();
-	else rotl();
+      	if(q->lp==this)rotr();
+      	else rotl();
       } else {
-	if(r->lp==q){
-	  if(q->lp==this){q->rotr();rotr();}
-	  else {rotl();rotr();}
-	} else {
-	  if(q->rp==this){q->rotl();rotl();}
-	  else {rotr();rotl();}
-	}
+      	if(r->lp==q){
+      	  if(q->lp==this){q->rotr();rotr();}
+      	  else {rotl();rotr();}
+      	} else {
+      	  if(q->rp==this){q->rotl();rotl();}
+      	  else {rotr();rotl();}
+      	}
       }
     }
     push();
@@ -165,7 +165,7 @@ node_t *node[100001];
 int main(void){
   int n;
   cin >> n;
-  
+
   for(int i=0;i<n;i++)node[i]=new node_t(i,0);
   for(int i=0;i<n;i++){
     int k,t;
@@ -183,7 +183,7 @@ int main(void){
     cin >> u >> v;
     cout << lca(node[u],node[v])->id << endl;
   }
-  
+
   return 0;
 }
 */
@@ -199,7 +199,7 @@ bool getPath(int u,int v,int p,vector<int> &path,int n){
   return false;
 }
 
-void test(){  
+void test(){
   srand(time(NULL));
 
   for(int tc=0;tc<1000;tc++){
@@ -210,14 +210,14 @@ void test(){
 
     fill(tree[0],tree[50],0);
     fill(val,val+n,0);
-    
+
     for(int q=0;q<1000;q++){
       int com=abs(rand())%10;
       int u=abs(rand())%n,v=abs(rand())%n;
       node_t *x=node[u],*y=node[v];
 
       //cout << com << " " << u << " " << v << endl;
-      
+
       if(com==0){
 	evert(x);
 	expose(y);

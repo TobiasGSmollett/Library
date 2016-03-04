@@ -13,9 +13,9 @@ struct edge{int to,cap,rev;};
 struct LinkCutTree {
   vector<int>left,right,parent,val,mini,minId,lazy;
   vector<edge *>edges;
-  
+
   LinkCutTree(int n,int v):left(n,-1),right(n,-1),parent(n,-1),val(n,v),
-			   mini(n,INF),minId(n,-1),lazy(n,0),edges(n,NULL){}  
+			   mini(n,INF),minId(n,-1),lazy(n,0),edges(n,NULL){}
   void push(int id){
     int l=left[id], r=right[id];
     if(l>=0)lazy[l]+=lazy[id];
@@ -26,14 +26,14 @@ struct LinkCutTree {
   void update_min(int id, int ch){
     if(mini[id]>mini[ch])mini[id] = mini[ch], minId[id] = minId[ch];
   }
-  
+
   void update(int id){
     int l=left[id], r=right[id];
     mini[id]=val[id], minId[id]=id, push(id);
     if(l>=0)push(l),update_min(id,l);
     if(r>=0)push(r),update_min(id,r);
   }
-  
+
   bool is_root(int id){
     return parent[id]<0 || (left[parent[id]]!=id && right[parent[id]]!=id);
   }
@@ -76,7 +76,7 @@ struct LinkCutTree {
     while(right[id]!=-1)id = right[id];
     return id;
   }
-  
+
   void link(int ch, int p){
     expose(ch);
     expose(p);
@@ -84,14 +84,14 @@ struct LinkCutTree {
     parent[ch]=p;
     left[p]=ch;
   }
-  
+
   void link(int c,int p,int v,edge *e){
     link(c,p);
     val[c]=v;
     update(c);
     edges[c]=e;
   }
-  
+
   void cut(int id){
     expose(id);
     if(right[id]<0)return;
@@ -99,7 +99,7 @@ struct LinkCutTree {
     right[id]=-1;
     val[id]=INF;
   }
-  
+
   int lca(int ch, int p){
     expose(ch);
     return expose(p);
@@ -120,7 +120,7 @@ void add_edge(int from,int to,int cap){
   g[from].push_back((edge){to,cap,(int)g[to].size()});
   g[to].push_back((edge){from,0,(int)g[from].size()-1});
 }
- 
+
 int dist[max_n];
 
 bool bfs(int s,int t){
@@ -134,8 +134,8 @@ bool bfs(int s,int t){
     for(int j=0;j<g[u].size();j++){
       edge e=g[u][j];
       if(dist[e.to]<0 && e.cap>0){
-	dist[e.to]=dist[u]+1;
-	que.push(e.to);
+      	dist[e.to]=dist[u]+1;
+      	que.push(e.to);
       }
     }
   }
@@ -165,39 +165,39 @@ int max_flow(int s,int t){
     while(true){
       int v = tree.find_root(s);
       if(v==t){
-	v=tree.getMinId(s);
-	tree.expose(v);
-	flow += tree.mini[v];
-	tree.add(s,-tree.mini[v]);
-	while(true){
-	  v=tree.getMinId(s);
-	  if(tree.val[v]>0)break;
-	  g[tree.edges[v]->to][tree.edges[v]->rev].cap += tree.edges[v]->cap;
-	  tree.edges[v]->cap = 0;
-	  tree.cut(v);
-	}
-	continue;
+      	v=tree.getMinId(s);
+      	tree.expose(v);
+      	flow += tree.mini[v];
+      	tree.add(s,-tree.mini[v]);
+      	while(true){
+      	  v=tree.getMinId(s);
+      	  if(tree.val[v]>0)break;
+      	  g[tree.edges[v]->to][tree.edges[v]->rev].cap += tree.edges[v]->cap;
+      	  tree.edges[v]->cap = 0;
+      	  tree.cut(v);
+      	}
+      	continue;
       }
 
       if(ptr[v] < g[v].size()){
-	edge &e=g[v][ptr[v]++];
-	if(dist[e.to]==dist[v]+1 && e.cap>0){
-	  tree.link(v,e.to,e.cap,&e);
-	  lists[e.to].push_back(v);
-	} 
+      	edge &e=g[v][ptr[v]++];
+      	if(dist[e.to]==dist[v]+1 && e.cap>0){
+      	  tree.link(v,e.to,e.cap,&e);
+      	  lists[e.to].push_back(v);
+      	}
       } else {
-	if(v==s){
-	  for(int i=0;i<n;i++){
-	    for(int j=0;j<lists[i].size();j++)pour(i,j,&tree);
-	    lists[i].clear();
-	  }
-	  break;
-	}
-	for(int i=0;i<lists[v].size();i++){
-	  if(!pour(v,i,&tree))tree.cut(lists[v][i]);
-	}
-	lists[v].clear();
-      }     
+      	if(v==s){
+      	  for(int i=0;i<n;i++){
+      	    for(int j=0;j<lists[i].size();j++)pour(i,j,&tree);
+      	    lists[i].clear();
+      	  }
+      	  break;
+      	}
+      	for(int i=0;i<lists[v].size();i++){
+      	  if(!pour(v,i,&tree))tree.cut(lists[v][i]);
+      	}
+      	lists[v].clear();
+      }
     }
   }
   return flow;
@@ -205,7 +205,7 @@ int max_flow(int s,int t){
 
 // AOJ GRL_6_A
 int main(void){
-  
+
   int e;
   cin >> n >> e;
   for(int i=0;i<e;i++){
@@ -213,8 +213,8 @@ int main(void){
     cin >> a >> b >> c;
     add_edge(a,b,c);
   }
- 
+
   cout << max_flow(0,n-1) << endl;;
- 
+
   return 0;
 }
