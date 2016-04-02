@@ -7,7 +7,7 @@ eps = 1e-8
 add :: (Ord a, Floating a) => a -> a -> a
 add a b
   | abs (a + b) < eps * (abs a + abs b ) = 0.0
-  | otherwise = a `add` b
+  | otherwise = a + b
 
 sgn :: (Ord a, Floating a) => a -> a -> Int
 sgn a b
