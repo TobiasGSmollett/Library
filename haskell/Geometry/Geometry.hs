@@ -16,7 +16,13 @@ sgn a b
   | otherwise = 0
 
 data Point a = Point { x :: a, y :: a } deriving (Eq)
+instance (Show a) => Show (Point a) where
+  show(Point x y) = show x ++ " " ++ show y
+
 data Line a = Line {a :: Point a, b :: Point a}
+instance (Show a) => Show (Line a) where
+  show(Line a b) = show a ++ " " ++ show b
+
 newtype Segment a = Segment { getSegment :: Line a}
 data Circle a = Circle { center :: Point a, radius :: a }
 newtype Polygon a = Polygon { getPolygon :: [Point a] }
@@ -67,10 +73,13 @@ ccw a b c
 on :: (Ord a, Floating a) => Point a -> Line a -> Bool
 c `on` l = abs (ccw (a l) (b l) c) /= 1
 
-project :: (Ord a, Floating a) => Point a -> Line a -> Point a
-p `project` l = a l ^+ (base ^* t)
+project :: (Ord a, Floating a) => Line a -> Point a -> Point a
+l `project` p = a l ^+ (base ^* t)
   where base = b l ^- a l
         t = ((p ^- a l) `dot` base) / (base `dot` base)
+
+reflect :: (Ord a, Floating a) => Line a -> Point a -> Point a
+l `reflect` p = p ^+ ((l `project` p) ^- p) ^* 2
 -----Segment-----
 
 -----Circle-----
